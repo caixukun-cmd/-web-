@@ -133,14 +133,20 @@
             cursor: not-allowed;
         }
 
-        .btn-reset {
-            background: #ff9800;
+        .btn-home {
+            background: #4caf50;
             color: white;
         }
 
-        .btn-reset:hover {
-            background: #e68900;
+        .btn-home:hover {
+            background: #45a049;
         }
+
+        .btn-home:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
 
         select {
             padding: 6px;
@@ -269,8 +275,8 @@
                         <option value="continuous">连续移动演示</option>
                     </select>
                     <button class="btn btn-run" id="runBtn" onclick="runCode()">▶ 运行</button>
-                    <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 停止</button>
-                    <button class="btn btn-reset" onclick="resetCar()">🔄 重置</button>
+                    <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 终止</button>
+                    <button class="btn btn-home" id="homeBtn" onclick="homeCar()" disabled>🏠 归位</button>
                 </div>
             </div>
             <div id="editor"></div>
@@ -325,7 +331,6 @@
             initScene, 
             connectWebSocket, 
             sendMessage, 
-            resetCar, 
             isWebSocketConnected 
         } from '/js/simulator.js';
         
@@ -333,7 +338,6 @@
         window.initScene = initScene;
         window.connectWebSocket = connectWebSocket;
         window.sendMessage = sendMessage;
-        window.resetCar = resetCar;
         window.isWebSocketConnected = isWebSocketConnected;
     </script>
     <script>
@@ -344,7 +348,7 @@
         // 暴露全局函数给HTML
         window.runCode = runCode;
         window.stopCode = stopCode;
-        window.resetCar = resetCarHandler;
+        window.homeCar = homeCar;
         window.handleLogout = handleLogout;
         window.loadExampleCode = loadExampleCode;
 
@@ -438,6 +442,7 @@
                     isRunning = false;
                     document.getElementById('runBtn').disabled = false;
                     document.getElementById('stopBtn').disabled = true;
+                    document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
                 },
                 onClose: () => {
                     updateConnectionStatus(false);
@@ -446,6 +451,7 @@
                     isRunning = false;
                     document.getElementById('runBtn').disabled = false;
                     document.getElementById('stopBtn').disabled = true;
+                    document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
                 },
                 onComplete: (message) => {
                     addConsoleLog(message, 'success');
@@ -528,6 +534,7 @@
                         isRunning = true;
                         document.getElementById('runBtn').disabled = true;
                         document.getElementById('stopBtn').disabled = false;
+                        document.getElementById('homeBtn').disabled = true;  // 运行时禁用归位按钮
                         
                         addConsoleLog('开始执行代码...', 'info');
                         
@@ -551,6 +558,7 @@
             isRunning = true;
             document.getElementById('runBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
+            document.getElementById('homeBtn').disabled = true;  // 运行时禁用归位按钮
 
             addConsoleLog('开始执行代码...', 'info');
             
@@ -569,23 +577,26 @@
             isRunning = false;
             document.getElementById('runBtn').disabled = false;
             document.getElementById('stopBtn').disabled = true;
+            document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
             addConsoleLog('已停止执行', 'info');
         }
 
-        // 重置小车
-        function resetCarHandler() {
-            if (isWebSocketConnected()) {
-                sendMessage({ type: 'reset' });
+        // 归位功能
+        function homeCar() {
+            if (!isWebSocketConnected()) {
+                addConsoleLog('WebSocket未连接，无法归位', 'error');
+                return;
             }
 
-            resetCar();
-            
-            document.getElementById('posX').textContent = '0.00';
-            document.getElementById('posY').textContent = '0.00';
-            document.getElementById('speed').textContent = '0.00';
-            
-            addConsoleLog('小车已重置', 'success');
+            if (isRunning) {
+                addConsoleLog('请先停止代码执行后再归位', 'warning');
+                return;
+            }
+
+            sendMessage({ type: 'home' });
+            addConsoleLog('正在归位...', 'info');
         }
+
 
         // 加载示例代码
         function loadExampleCode() {
@@ -634,12 +645,11 @@
                            'for i in range(4):\n' +
                            '    print(f"第{i+1}边: 前进2秒...")\n' +
                            '    car.forward(70, 2.0)  # 前进70的速度，持续2秒\n' +
-                           '    car.wait()  # 等待运动完成\n' +
-                           '    car.stop()\n' +
-                           '    time.sleep(0.5)\n' +
+                           '    await car.wait()  # 等待运动完成\n' +
+                           '    await time.sleep(0.5)  # 短暂停顿\n' +
                            '    print(f"第{i+1}次右转...")\n' +
                            '    car.turn_right(90)\n' +
-                           '    time.sleep(1)\n' +
+                           '    await time.sleep(1)  # 转向后停顿\n' +
                            '    print(f"第{i+1}边完成后位置:", car.get_position())\n' +
                            '\n' +
                            'print("方形路径完成，最终位置:", car.get_position())';
@@ -663,14 +673,13 @@
                            '            car.turn_right(90)\n' +
                            '        else:\n' +
                            '            car.turn_left(45)\n' +
-                           '        time.sleep(1)\n' +
+                           '        await time.sleep(1)  # 转向后停顿\n' +
                            '    else:\n' +
                            '        if speed > 0:\n' +
                            '            car.forward(speed, duration)\n' +
                            '        elif speed < 0:\n' +
                            '            car.backward(abs(speed), duration)\n' +
-                           '        car.wait()  # 等待运动完成\n' +
-                           '        car.stop()\n' +
+                           '        await car.wait()  # 等待运动完成\n' +
                            '    print(f"执行: {action}, 位置: {car.get_position()}")\n' +
                            '\n' +
                            'print("连续移动完成，最终位置:", car.get_position())';

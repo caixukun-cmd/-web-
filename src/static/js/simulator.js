@@ -12,8 +12,6 @@ let scene, camera, renderer, controls;
 let carModel = null;
 let socket = null;
 let isConnected = false;
-let ignorePositionUpdates = false;
-let ignoreTimer = null;
 
 // 小车状态
 let carState = {
@@ -284,11 +282,6 @@ function handleWebSocketMessage(data, callbacks) {
 
     switch (type) {
         case 'position':
-            // 如果正在重置防抖期，忽略这次更新（防止闪回）
-            if (ignorePositionUpdates) {
-                console.log('[DEBUG] Ignored position update during reset debounce');
-                return;
-            }
             updateCarPosition(data.x, data.y, data.rotation);
             // 更新 UI
             if (data.x !== undefined && data.y !== undefined) {
@@ -314,27 +307,6 @@ function handleWebSocketMessage(data, callbacks) {
             }
             break;
 
-        case 'reset':
-            // 收到服务器的重置确认
-            console.log('[DEBUG] Server confirmed reset, starting ignore period');
-
-            // 立即本地重置
-            resetCar();
-
-            // 开启短暂忽略 position 更新的保护期（400ms）
-            ignorePositionUpdates = true;
-
-            // 清除旧定时器（防止多次重置叠加）
-            if (ignoreTimer) clearTimeout(ignoreTimer);
-
-            // 400ms 后恢复正常接收 position 更新
-            ignoreTimer = setTimeout(() => {
-                ignorePositionUpdates = false;
-                console.log('[DEBUG] Reset debounce period ended, normal updates resumed');
-            }, 400);
-
-            addConsoleLog('小车已重置（服务器确认）', 'success');
-            break;
 
         case 'log':
             if (callbacks.onLog) callbacks.onLog(data.message, data.level);
@@ -422,27 +394,6 @@ function onWindowResize() {
     renderer.setSize(container.clientWidth, container.clientHeight);
 }
 
-// ===== 13. 重置小车 =====
-export function resetCar() {
-    if (carModel) {
-        carModel.position.set(0, 0, 0);
-        carModel.rotation.y = 0;  // 注意是 rotation.y
-    }
-
-    carState = {
-        position: { x: 0, y: 0 },
-        rotation: 0,
-        speed: 0,
-        isMoving: false
-    };
-
-    // 强制更新状态栏
-    document.getElementById('posX').textContent = '0.00';
-    document.getElementById('posY').textContent = '0.00';
-    document.getElementById('speed').textContent = '0.00';
-
-    console.log('[DEBUG] Local car model and UI reset complete');
-}
 
 // ===== 14. 清理资源 =====
 export function dispose() {
