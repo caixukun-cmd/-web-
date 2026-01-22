@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前后端连接测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .success {
+            border-left-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .error {
+            border-left-color: #f44336;
+            color: #c62828;
+        }
+
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .credential {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 智能小车仿真系统 - 前后端连接测试</h1>
+        
+        <div class="info">
+            <h3>测试账号信息：</h3>
+            <div class="credential">
+                <strong>学生账号：</strong>student001 / pass123456
+            </div>
+            <div class="credential">
+                <strong>教师账号：</strong>teacher_zhang / teach2024
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>1. 测试后端健康检查</h2>
+            <button class="btn" onclick="testHealth()">测试 /health</button>
+            <div id="healthResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. 测试用户注册</h2>
+            <button class="btn" onclick="testRegister()">测试注册新用户</button>
+            <div id="registerResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. 测试用户登录（学生账号）</h2>
+            <button class="btn" onclick="testLogin('student001', 'pass123456')">测试学生登录</button>
+            <div id="loginResult1" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. 测试用户登录（教师账号）</h2>
+            <button class="btn" onclick="testLogin('teacher_zhang', 'teach2024', 'loginResult2')">测试教师登录</button>
+            <div id="loginResult2" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>5. 测试获取当前用户信息</h2>
+            <button class="btn" onclick="testGetCurrentUser()">测试获取用户信息</button>
+            <div id="currentUserResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>6. 测试错误场景</h2>
+            <button class="btn" onclick="testWrongPassword()">测试错误密码</button>
+            <button class="btn" onclick="testNonexistentUser()">测试不存在的用户</button>
+            <div id="errorResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>7. 前往实际页面</h2>
+            <button class="btn" onclick="window.location.href='login.html'">前往登录页面</button>
+            <button class="btn" onclick="window.location.href='register.html'">前往注册页面</button>
+            <button class="btn" onclick="window.location.href='dashboard.html'">前往主页面</button>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                resultDiv.textContent = `✓ 成功！\n状态码: ${response.status}\n响应: ${JSON.stringify(data, null, 2)}`;
+                resultDiv.classList.add('success');
+            } catch (error) {
+                resultDiv.textContent = `✗ 失败！\n错误: ${error.message}\n\n请确认后端服务已启动 (uvicorn main:app --reload)`;
+                resultDiv.classList.add('error');
+            }
+        }
+
+        async function testRegister() {
+            const resultDiv = document.getElementById('registerResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            resultDiv.className = 'result';
+
+            const randomNum = Math.floor(Math.random() * 10000);
+            const username = `testuser${randomNum}`;
+            const email = `test${randomNum}@example.com`;
+            const password = 'test123456';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.textContent = `✓ 注册成功！
+用户名: ${username}
+邮箱: ${email}
+密码: ${password}
+
+Token: ${data.access_token.substring(0, 50)}...
+
+用户信息: ${JSON.stringify(data.user, null, 2)}`;
+                    resultDiv.classList.add('success');
+                } else {
+                    resultDiv.textContent = `✗ 注册失败！\n状态码: ${response.status}\n错误: ${data.detail}`;
+                    resultDiv.classList.add('error');
+                }
+            } catch (error) {
+                resultDiv.textContent = `✗ 请求失败！\n错误: ${error.message}`;
+                resultDiv.classList.add('error');
+            }
+        }
+
+        async function testLogin(username, password, resultId = 'loginResult1') {
+            const resultDiv = document.getElementById(resultId);
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            resultDiv.className = 'result';
+
+            const result = await login(username, password);
+
+            if (result.success) {
+                resultDiv.textContent = `✓ 登录成功！
+用户: ${result.data.user.username}
+邮箱: ${result.data.user.email}
+是否管理员: ${result.data.user.is_admin ? '是' : '否'}
+
+Token: ${result.data.access_token.substring(0, 50)}...`;
+                resultDiv.classList.add('success');
+            } else {
+                resultDiv.textContent = `✗ 登录失败！\n错误: ${result.message}`;
+                resultDiv.classList.add('error');
+            }
+        }
+
+        async function testGetCurrentUser() {
+            const resultDiv = document.getElementById('currentUserResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            resultDiv.className = 'result';
+
+            const user = await getCurrentUser();
+
+            if (user) {
+                resultDiv.textContent = `✓ 获取成功！\n${JSON.stringify(user, null, 2)}`;
+                resultDiv.classList.add('success');
+            } else {
+                resultDiv.textContent = `✗ 获取失败！\n请先登录`;
+                resultDiv.classList.add('error');
+            }
+        }
+
+        async function testWrongPassword() {
+            const resultDiv = document.getElementById('errorResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            resultDiv.className = 'result';
+
+            const result = await login('student001', 'wrongpassword');
+
+            if (!result.success) {
+                resultDiv.textContent = `✓ 错误处理正确！\n错误消息: ${result.message}`;
+                resultDiv.classList.add('success');
+            } else {
+                resultDiv.textContent = `✗ 应该登录失败但成功了！`;
+                resultDiv.classList.add('error');
+            }
+        }
+
+        async function testNonexistentUser() {
+            const resultDiv = document.getElementById('errorResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '测试中...';
+            resultDiv.className = 'result';
+
+            const result = await login('nonexistent_user_123', 'password');
+
+            if (!result.success) {
+                resultDiv.textContent = `✓ 错误处理正确！\n错误消息: ${result.message}`;
+                resultDiv.classList.add('success');
+            } else {
+                resultDiv.textContent = `✗ 应该登录失败但成功了！`;
+                resultDiv.classList.add('error');
+            }
+        }
+
+        // 页面加载时自动测试健康检查
+        window.addEventListener('DOMContentLoaded', () => {
+            testHealth();
+        });
+    </script>
+</body>
+</html>

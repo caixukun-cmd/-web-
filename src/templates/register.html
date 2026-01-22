@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能小车模拟仿真系统 - 注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .link-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-text a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: #c33 !important;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .input-success {
+            border-color: #3c3 !important;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 智能小车仿真系统</h1>
+            <p>创建新账号</p>
+        </div>
+        <div class="form-container">
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+            
+            <form id="registerForm" action="#" method="post">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" required minlength="3"
+                           placeholder="3-50个字符，只能包含字母、数字和下划线" 
+                           autocomplete="username">
+                    <div class="input-hint" id="usernameHint">请输入用户名</div>
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" name="email" required
+                           placeholder="请输入邮箱地址" 
+                           autocomplete="email">
+                    <div class="input-hint" id="emailHint">用于找回密码</div>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required minlength="6"
+                           placeholder="至少6个字符" 
+                           autocomplete="new-password">
+                    <div class="input-hint" id="passwordHint">至少6个字符</div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                           placeholder="请再次输入密码" 
+                           autocomplete="new-password">
+                    <div class="input-hint" id="confirmHint">请再次输入相同的密码</div>
+                </div>
+                <button type="submit" class="btn" id="registerBtn">注册</button>
+            </form>
+            
+            <div class="link-text">
+                已有账号？<a href="login.html">立即登录</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const registerBtn = document.getElementById('registerBtn');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+
+        // 实时验证用户名
+        usernameInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const hint = document.getElementById('usernameHint');
+            const error = validateUsername(value);
+            
+            if (value.length === 0) {
+                hint.textContent = '请输入用户名';
+                hint.style.color = '#999';
+                usernameInput.classList.remove('input-error', 'input-success');
+            } else if (error) {
+                hint.textContent = '✗ ' + error;
+                hint.style.color = '#c33';
+                usernameInput.classList.add('input-error');
+                usernameInput.classList.remove('input-success');
+            } else {
+                hint.textContent = '✓ 用户名格式正确';
+                hint.style.color = '#3c3';
+                usernameInput.classList.add('input-success');
+                usernameInput.classList.remove('input-error');
+            }
+        });
+
+        // 实时验证邮箱
+        emailInput.addEventListener('blur', (e) => {
+            const value = e.target.value;
+            const hint = document.getElementById('emailHint');
+            const error = validateEmail(value);
+            
+            if (value.length > 0) {
+                if (error) {
+                    hint.textContent = '✗ ' + error;
+                    hint.style.color = '#c33';
+                    emailInput.classList.add('input-error');
+                    emailInput.classList.remove('input-success');
+                } else {
+                    hint.textContent = '✓ 邮箱格式正确';
+                    hint.style.color = '#3c3';
+                    emailInput.classList.add('input-success');
+                    emailInput.classList.remove('input-error');
+                }
+            }
+        });
+
+        // 实时验证密码
+        passwordInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const hint = document.getElementById('passwordHint');
+            const error = validatePassword(value);
+            
+            if (value.length === 0) {
+                hint.textContent = '至少6个字符';
+                hint.style.color = '#999';
+                passwordInput.classList.remove('input-error', 'input-success');
+            } else if (error) {
+                hint.textContent = '✗ ' + error;
+                hint.style.color = '#c33';
+                passwordInput.classList.add('input-error');
+                passwordInput.classList.remove('input-success');
+            } else {
+                hint.textContent = '✓ 密码长度符合要求';
+                hint.style.color = '#3c3';
+                passwordInput.classList.add('input-success');
+                passwordInput.classList.remove('input-error');
+            }
+            
+            // 同时检查确认密码
+            checkConfirmPassword();
+        });
+
+        // 实时验证确认密码
+        confirmPasswordInput.addEventListener('input', checkConfirmPassword);
+
+        function checkConfirmPassword() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const hint = document.getElementById('confirmHint');
+            
+            if (confirmPassword.length === 0) {
+                hint.textContent = '请再次输入相同的密码';
+                hint.style.color = '#999';
+                confirmPasswordInput.classList.remove('input-error', 'input-success');
+            } else if (password !== confirmPassword) {
+                hint.textContent = '✗ 两次密码输入不一致';
+                hint.style.color = '#c33';
+                confirmPasswordInput.classList.add('input-error');
+                confirmPasswordInput.classList.remove('input-success');
+            } else {
+                hint.textContent = '✓ 密码匹配';
+                hint.style.color = '#3c3';
+                confirmPasswordInput.classList.add('input-success');
+                confirmPasswordInput.classList.remove('input-error');
+            }
+        }
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // 验证密码匹配
+            if (password !== confirmPassword) {
+                showError('✗ 两次输入的密码不一致');
+                return;
+            }
+
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '注册中<span class="loading"></span>';
+
+            const result = await register(username, email, password);
+
+            if (result.success) {
+                showSuccess('✓ 注册成功！正在跳转...');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            } else {
+                showError('✗ ' + (result.message || '注册失败，请重试'));
+                registerBtn.disabled = false;
+                registerBtn.textContent = '注册';
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // 页面加载时检查是否已登录
+        window.addEventListener('DOMContentLoaded', () => {
+            if (isLoggedIn() && !isTokenExpired()) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

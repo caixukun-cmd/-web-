@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能小车模拟仿真系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            width: 500px;
+            max-width: 90%;
+            text-align: center;
+            padding: 50px 30px;
+        }
+
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-test {
+            background: white;
+            color: #764ba2;
+            border: 2px solid #764ba2;
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .features {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .feature-item {
+            margin: 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .feature-item::before {
+            content: '✓';
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚗</div>
+        <h1>智能小车模拟仿真系统</h1>
+        <p>专为编程教学设计的智能小车仿真平台<br>通过编写代码控制虚拟小车，学习编程逻辑和算法设计</p>
+        
+        <div class="btn-group">
+            <a href="login.html" class="btn btn-primary">登录</a>
+            <a href="register.html" class="btn btn-secondary">注册</a>
+        </div>
+
+        <div class="features">
+            <div class="feature-item">基于Monaco Editor的代码编辑器</div>
+            <div class="feature-item">使用Three.js构建的3D仿真场景</div>
+            <div class="feature-item">实时WebSocket通信</div>
+            <div class="feature-item">安全的代码执行沙箱</div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 30px;">
+            <a href="test_connection.html" class="btn btn-test">🔧 测试前后端连接</a>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        // 如果已登录，直接跳转到仿真页面
+        window.addEventListener('DOMContentLoaded', () => {
+            if (isLoggedIn() && !isTokenExpired()) {
+                window.location.href = 'simulator.html';
+            }
+        });
+    </script>
+</body>
+</html>

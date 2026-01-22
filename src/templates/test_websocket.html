@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket 连接测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 800px;
+            max-width: 100%;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .status-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .status-value {
+            font-weight: bold;
+        }
+
+        .status-value.connected {
+            color: #4CAF50;
+        }
+
+        .status-value.disconnected {
+            color: #f44336;
+        }
+
+        .control-section {
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-connect {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-disconnect {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-test {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .log-section {
+            background: #1e1e1e;
+            color: #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+
+        .log-line {
+            margin: 5px 0;
+            padding: 3px 5px;
+        }
+
+        .log-line.info {
+            color: #2196F3;
+        }
+
+        .log-line.success {
+            color: #4CAF50;
+        }
+
+        .log-line.error {
+            color: #f44336;
+        }
+
+        .log-line.warning {
+            color: #ff9800;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 WebSocket 连接测试</h1>
+
+        <div class="status-section">
+            <h3 style="margin-bottom: 15px; color: #333;">连接状态</h3>
+            <div class="status-item">
+                <span class="status-label">WebSocket状态:</span>
+                <span class="status-value disconnected" id="wsStatus">未连接</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">服务器地址:</span>
+                <span class="status-value" id="wsUrl">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">收到消息数:</span>
+                <span class="status-value" id="msgCount">0</span>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3 style="margin-bottom: 15px; color: #333;">控制面板</h3>
+            <div class="btn-group">
+                <button class="btn btn-connect" id="connectBtn" onclick="connectWebSocket()">连接</button>
+                <button class="btn btn-disconnect" id="disconnectBtn" onclick="disconnectWebSocket()" disabled>断开</button>
+                <button class="btn btn-test" onclick="sendTestMessage('运行测试')" disabled id="testBtn">发送测试消息</button>
+                <button class="btn btn-test" onclick="clearLogs()">清空日志</button>
+            </div>
+        </div>
+
+        <div class="log-section" id="logContainer">
+            <div class="log-line info">[系统] WebSocket 测试工具已就绪</div>
+            <div class="log-line info">[提示] 点击"连接"按钮开始测试</div>
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">← 返回首页</a>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let messageCount = 0;
+
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            logLine.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logLine);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateStatus(status, isConnected) {
+            const statusEl = document.getElementById('wsStatus');
+            statusEl.textContent = status;
+            statusEl.className = `status-value ${isConnected ? 'connected' : 'disconnected'}`;
+
+            document.getElementById('connectBtn').disabled = isConnected;
+            document.getElementById('disconnectBtn').disabled = !isConnected;
+            document.getElementById('testBtn').disabled = !isConnected;
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            document.getElementById('wsUrl').textContent = wsUrl;
+            addLog(`正在连接到: ${wsUrl}`, 'info');
+
+            try {
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = function(event) {
+                    addLog('✓ WebSocket 连接成功!', 'success');
+                    updateStatus('已连接', true);
+                };
+
+                ws.onmessage = function(event) {
+                    messageCount++;
+                    document.getElementById('msgCount').textContent = messageCount;
+                    
+                    try {
+                        const data = JSON.parse(event.data);
+                        addLog(`收到消息: ${JSON.stringify(data, null, 2)}`, 'success');
+                    } catch {
+                        addLog(`收到消息: ${event.data}`, 'success');
+                    }
+                };
+
+                ws.onerror = function(error) {
+                    addLog('✗ WebSocket 连接错误', 'error');
+                    console.error('WebSocket error:', error);
+                };
+
+                ws.onclose = function(event) {
+                    addLog(`WebSocket 连接已关闭 (代码: ${event.code})`, 'warning');
+                    updateStatus('未连接', false);
+                };
+
+            } catch (error) {
+                addLog(`连接失败: ${error.message}`, 'error');
+                updateStatus('连接失败', false);
+            }
+        }
+
+        function disconnectWebSocket() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+                addLog('主动断开连接', 'info');
+            }
+        }
+
+        function sendTestMessage(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const testData = {
+                    type: 'test',
+                    message: message,
+                    timestamp: new Date().toISOString()
+                };
+                ws.send(JSON.stringify(testData));
+                addLog(`发送消息: ${JSON.stringify(testData)}`, 'info');
+            } else {
+                addLog('WebSocket 未连接，无法发送消息', 'error');
+            }
+        }
+
+        function clearLogs() {
+            const logContainer = document.getElementById('logContainer');
+            logContainer.innerHTML = '<div class="log-line info">[系统] 日志已清空</div>';
+            messageCount = 0;
+            document.getElementById('msgCount').textContent = '0';
+        }
+
+        // 页面卸载时关闭连接
+        window.addEventListener('beforeunload', () => {
+            if (ws) {
+                ws.close();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能小车模拟仿真系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            overflow: hidden;
+            background: #1e1e1e;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            height: 50px;
+        }
+
+        .navbar h1 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .navbar .username {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .navbar .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+
+        .navbar .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 50px);
+        }
+
+        .left-panel {
+            width: 50%;
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #333;
+        }
+
+        .editor-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #3e3e3e;
+        }
+
+        .editor-header h3 {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .editor-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            outline: none;
+        }
+
+        .btn-run {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-run:hover {
+            background: #45a049;
+        }
+
+        .btn-run:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .btn-stop {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #da190b;
+        }
+
+        .btn-stop:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #e68900;
+        }
+
+        select {
+            padding: 6px;
+            margin-right: 10px;
+            background: #2d2d2d;
+            color: white;
+            border: 1px solid #3e3e3e;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        #editor {
+            flex: 1;
+            width: 100%;
+        }
+
+        .right-panel {
+            width: 50%;
+            background: #252525;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            border-bottom: 1px solid #3e3e3e;
+        }
+
+        .canvas-header h3 {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .status-bar {
+            background: #2d2d2d;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #3e3e3e;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .status-indicator.active {
+            background: #4CAF50;
+            box-shadow: 0 0 8px #4CAF50;
+        }
+
+        .console {
+            background: #1e1e1e;
+            border-top: 2px solid #333;
+            height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: #ddd;
+        }
+
+        .console-line {
+            margin: 2px 0;
+            padding: 2px 5px;
+        }
+
+        .console-line.error {
+            color: #f44336;
+        }
+
+        .console-line.info {
+            color: #2196F3;
+        }
+
+        .console-line.success {
+            color: #4CAF50;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>🚗 智能小车模拟仿真系统</h1>
+        <div class="user-info">
+            <span class="username" id="username">加载中...</span>
+            <button class="logout-btn" onclick="handleLogout()">退出登录</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 左侧：代码编辑器 -->
+        <div class="left-panel">
+            <div class="editor-header">
+                <h3>💻 代码编辑器 (Python)</h3>
+                <div class="editor-controls">
+                    <select id="exampleSelector" onchange="loadExampleCode()" style="padding: 6px; margin-right: 10px; background: #2d2d2d; color: white; border: 1px solid #3e3e3e; border-radius: 4px;">
+                        <option value="basic">基本移动演示</option>
+                        <option value="square">方形路径演示</option>
+                        <option value="continuous">连续移动演示</option>
+                    </select>
+                    <button class="btn btn-run" id="runBtn" onclick="runCode()">▶ 运行</button>
+                    <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 停止</button>
+                    <button class="btn btn-reset" onclick="resetCar()">🔄 重置</button>
+                </div>
+            </div>
+            <div id="editor"></div>
+            <div class="console" id="console">
+                <div class="console-line info">欢迎使用智能小车模拟仿真系统</div>
+                <div class="console-line info">在左侧编辑器中编写代码，点击"运行"按钮查看小车运行效果</div>
+            </div>
+        </div>
+
+        <!-- 右侧：3D场景 -->
+        <div class="right-panel">
+            <div class="canvas-header">
+                <h3>🎮 3D仿真场景</h3>
+            </div>
+            <div id="canvas-container">
+                <div class="loading">正在加载3D场景...</div>
+            </div>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-indicator" id="connectionStatus"></div>
+                    <span>连接状态: <span id="connectionText">未连接</span></span>
+                </div>
+                <div class="status-item">
+                    <span>位置: X=<span id="posX">0.00</span> Y=<span id="posY">0.00</span></span>
+                </div>
+                <div class="status-item">
+                    <span>速度: <span id="speed">0.00</span> m/s</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monaco Editor -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js" integrity="" crossorigin="anonymous"></script>
+    
+    <!-- Three.js - 使用模块版本 -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/",
+            "three/addons/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/loaders/GLTFLoader.js"
+        }
+    }
+    </script>
+
+    <script src="/js/auth.js"></script>
+    
+    <!-- 仿真核心逻辑 -->
+    <script type="module">
+        import { 
+            initScene, 
+            connectWebSocket, 
+            sendMessage, 
+            resetCar, 
+            isWebSocketConnected 
+        } from '/js/simulator.js';
+        
+        // 将模块函数暴露到全局作用域
+        window.initScene = initScene;
+        window.connectWebSocket = connectWebSocket;
+        window.sendMessage = sendMessage;
+        window.resetCar = resetCar;
+        window.isWebSocketConnected = isWebSocketConnected;
+    </script>
+    <script>
+        let editor;
+        let wsConnection = null;  // 存储WebSocket连接
+        let isRunning = false;
+
+        // 暴露全局函数给HTML
+        window.runCode = runCode;
+        window.stopCode = stopCode;
+        window.resetCar = resetCarHandler;
+        window.handleLogout = handleLogout;
+        window.loadExampleCode = loadExampleCode;
+
+        // 默认示例代码
+        const defaultCode = '# 基本移动演示\n' +
+                            'print("=== 基本移动演示 ===")\n' +
+                            'print("初始位置:", car.get_position())\n' +
+                            '\n' +
+                            'print("前进演示开始...")\n' +
+                            'car.forward(80, 4.0)\n' +
+                            'await car.wait()  # 等待完成\n' +
+                            'print("前进完成，位置:", car.get_position())\n' +
+                            '\n' +
+                            'await time.sleep(1)\n' +
+                            '\n' +
+                            'print("后退演示开始...")\n' +
+                            'car.backward(80, 4.0)\n' +
+                            'await car.wait()\n' +
+                            'print("后退完成，位置:", car.get_position())\n' +
+                            '\n' +
+                            'await time.sleep(1)\n' +
+                            '\n' +
+                            'print("转向演示开始...")\n' +
+                            'car.turn_right(90)\n' +
+                            'await time.sleep(1)\n' +
+                            'car.turn_left(45)\n' +
+                            'await time.sleep(1)\n' +
+                            'print("转向完成，位置:", car.get_position())\n' +
+                            '\n' +
+                            'print("演示结束，最终位置:", car.get_position())';
+
+        // 初始化Monaco Editor
+        require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: defaultCode,
+                language: 'python',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                fontSize: 14,
+                minimap: { enabled: true },
+                scrollBeyondLastLine: false,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                readOnly: false,
+                cursorStyle: 'line'
+            });
+            
+            // 设置基本移动演示为默认选择
+            if (document.getElementById('exampleSelector')) {
+                document.getElementById('exampleSelector').value = 'basic';
+            }
+        });
+
+        // 初始化Three.js场景
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            if (window.initScene) {
+                initScene(container);
+                addConsoleLog('3D场景初始化完成', 'success');
+            } else {
+                console.error('initScene 函数未定义');
+                addConsoleLog('3D场景初始化失败', 'error');
+            }
+        }
+
+        // 初始化WebSocket连接
+        function initWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            // 修复：使用正确的服务器地址和端口
+            const host = window.location.hostname || 'localhost';
+            // 强制使用FastAPI后端端口8000，而不是前端服务器端口
+            const port = '8000';
+            const wsUrl = `${protocol}//${host}:${port}/ws`;
+            
+            wsConnection = connectWebSocket(wsUrl, {
+                onOpen: () => {
+                    updateConnectionStatus(true);
+                    addConsoleLog('WebSocket连接成功', 'success');
+                },
+                onStatus: (data) => {
+                    updateStatus(data);
+                },
+                onLog: (message, level) => {
+                    addConsoleLog(message, level);
+                },
+                onError: (error) => {
+                    updateConnectionStatus(false);
+                    addConsoleLog('WebSocket连接错误: ' + error, 'error');
+                    // 重置运行状态，确保按钮可用
+                    isRunning = false;
+                    document.getElementById('runBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                },
+                onClose: () => {
+                    updateConnectionStatus(false);
+                    addConsoleLog('WebSocket连接已关闭', 'info');
+                    // 重置运行状态，确保按钮可用
+                    isRunning = false;
+                    document.getElementById('runBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                },
+                onComplete: (message) => {
+                    addConsoleLog(message, 'success');
+                    stopCode();
+                }
+            });
+        }
+
+        // 更新连接状态
+        function updateConnectionStatus(connected) {
+            const indicator = document.getElementById('connectionStatus');
+            const text = document.getElementById('connectionText');
+            
+            if (connected) {
+                indicator.classList.add('active');
+                text.textContent = '已连接';
+            } else {
+                indicator.classList.remove('active');
+                text.textContent = '未连接';
+            }
+        }
+
+        // 更新状态信息
+        function updateStatus(data) {
+            if (data.speed !== undefined) {
+                document.getElementById('speed').textContent = data.speed.toFixed(2);
+            }
+            if (data.x !== undefined && data.y !== undefined) {
+                document.getElementById('posX').textContent = data.x.toFixed(2);
+                document.getElementById('posY').textContent = data.y.toFixed(2);
+            }
+        }
+
+        // 添加控制台日志
+        function addConsoleLog(message, type = 'info') {
+            const consoleEl = document.getElementById('console');
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            line.textContent = `[${timestamp}] ${message}`;
+            consoleEl.appendChild(line);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        // 运行代码
+        function runCode() {
+            if (!editor) {
+                addConsoleLog('编辑器未初始化', 'error');
+                return;
+            }
+
+            const code = editor.getValue();
+            if (!code.trim()) {
+                addConsoleLog('请输入代码', 'error');
+                return;
+            }
+
+            if (!isWebSocketConnected()) {
+                addConsoleLog('WebSocket未连接，正在重新连接...', 'info');
+                initWebSocket();
+                
+                // 等待连接建立后再运行代码
+                const checkConnection = setInterval(() => {
+                    if (isWebSocketConnected()) {
+                        clearInterval(checkConnection);
+                        addConsoleLog('WebSocket连接已建立，开始执行代码...', 'success');
+                        
+                        // 重新检查编辑器状态并执行代码
+                        if (!editor) {
+                            addConsoleLog('编辑器未初始化', 'error');
+                            return;
+                        }
+                        
+                        const code = editor.getValue();
+                        if (!code.trim()) {
+                            addConsoleLog('请输入代码', 'error');
+                            return;
+                        }
+                        
+                        isRunning = true;
+                        document.getElementById('runBtn').disabled = true;
+                        document.getElementById('stopBtn').disabled = false;
+                        
+                        addConsoleLog('开始执行代码...', 'info');
+                        
+                        sendMessage({
+                            type: 'run_code',
+                            code: code
+                        });
+                    }
+                }, 100); // 每100ms检查一次连接状态
+                
+                // 设置超时，防止无限等待
+                setTimeout(() => {
+                    clearInterval(checkConnection);
+                    if (!isWebSocketConnected()) {
+                        addConsoleLog('重新连接超时，无法运行代码', 'error');
+                    }
+                }, 5000); // 5秒超时
+                return;
+            }
+
+            isRunning = true;
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+
+            addConsoleLog('开始执行代码...', 'info');
+            
+            sendMessage({
+                type: 'run_code',
+                code: code
+            });
+        }
+
+        // 停止代码
+        function stopCode() {
+            if (isWebSocketConnected()) {
+                sendMessage({ type: 'stop' });
+            }
+
+            isRunning = false;
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            addConsoleLog('已停止执行', 'info');
+        }
+
+        // 重置小车
+        function resetCarHandler() {
+            if (isWebSocketConnected()) {
+                sendMessage({ type: 'reset' });
+            }
+
+            resetCar();
+            
+            document.getElementById('posX').textContent = '0.00';
+            document.getElementById('posY').textContent = '0.00';
+            document.getElementById('speed').textContent = '0.00';
+            
+            addConsoleLog('小车已重置', 'success');
+        }
+
+        // 加载示例代码
+        function loadExampleCode() {
+            const exampleType = document.getElementById('exampleSelector').value;
+            let code = '';
+            
+            switch(exampleType) {
+                case 'basic':
+                    code = '# 基本移动演示 - 突出显示移动和转向\n' +
+                           'print("=== 基本移动演示 ===")\n' +
+                           'print("初始位置:", car.get_position())\n' +
+                           '\n' +
+                           '# 明显的前进动作，便于观察移动\n' +
+                           'print("前进演示开始...")\n' +
+                           'car.forward(80, 4.0)  # 前进80的速度，持续4秒\n' +
+                           'car.wait()  # 等待运动完成\n' +
+                           'car.stop()\n' +
+                           'print("前进完成，位置:", car.get_position())\n' +
+                           '\n' +
+                           'time.sleep(1)  # 短暂停顿\n' +
+                           '\n' +
+                           '# 明显的后退动作\n' +
+                           'print("后退演示开始...")\n' +
+                           'car.backward(80, 4.0)  # 后退80的速度，持续4秒\n' +
+                           'await car.wait()  # 等待运动完成\n' +
+                           'car.stop()\n' +
+                           'print("后退完成，位置:", car.get_position())\n' +
+                           '\n' +
+                           'time.sleep(1)  # 短暂停顿\n' +
+                           '\n' +
+                           '# 转向演示 - 瞬时效果，容易观察\n' +
+                           'print("转向演示开始...")\n' +
+                           'car.turn_right(90)\n' +
+                           'time.sleep(1)  # 转向是瞬时的，所以时间较短\n' +
+                           'car.turn_left(45)\n' +
+                           'time.sleep(1)\n' +
+                           'print("转向完成，位置:", car.get_position())\n' +
+                           '\n' +
+                           'car.stop()\n' +
+                           'print("演示结束，最终位置:", car.get_position())';
+                    break;
+                case 'square':
+                    code = '# 方形路径演示\n' +
+                           'print("=== 方形路径演示 ===")\n' +
+                           '\n' +
+                           'for i in range(4):\n' +
+                           '    print(f"第{i+1}边: 前进2秒...")\n' +
+                           '    car.forward(70, 2.0)  # 前进70的速度，持续2秒\n' +
+                           '    car.wait()  # 等待运动完成\n' +
+                           '    car.stop()\n' +
+                           '    time.sleep(0.5)\n' +
+                           '    print(f"第{i+1}次右转...")\n' +
+                           '    car.turn_right(90)\n' +
+                           '    time.sleep(1)\n' +
+                           '    print(f"第{i+1}边完成后位置:", car.get_position())\n' +
+                           '\n' +
+                           'print("方形路径完成，最终位置:", car.get_position())';
+                    break;
+                case 'continuous':
+                    code = '# 连续移动演示\n' +
+                           'print("=== 连续移动演示 ===")\n' +
+                           '\n' +
+                           'directions = [\n' +
+                           '    (80, 3, "前进3秒"), \n' +
+                           '    (-80, 3, "后退3秒"), \n' +
+                           '    (0, 0, "右转90度"), \n' +
+                           '    (80, 2, "前进2秒"), \n' +
+                           '    (0, 0, "左转45度"), \n' +
+                           '    (80, 3, "前进3秒")\n' +
+                           ']\n' +
+                           '\n' +
+                           'for speed, duration, action in directions:\n' +
+                           '    if "转" in action:\n' +
+                           '        if "右" in action:\n' +
+                           '            car.turn_right(90)\n' +
+                           '        else:\n' +
+                           '            car.turn_left(45)\n' +
+                           '        time.sleep(1)\n' +
+                           '    else:\n' +
+                           '        if speed > 0:\n' +
+                           '            car.forward(speed, duration)\n' +
+                           '        elif speed < 0:\n' +
+                           '            car.backward(abs(speed), duration)\n' +
+                           '        car.wait()  # 等待运动完成\n' +
+                           '        car.stop()\n' +
+                           '    print(f"执行: {action}, 位置: {car.get_position()}")\n' +
+                           '\n' +
+                           'print("连续移动完成，最终位置:", car.get_position())';
+                    break;
+                default:
+                    code = defaultCode;
+            }
+            
+            if (editor) {
+                editor.setValue(code);
+            }
+        }
+        
+        // 检查登录状态
+        async function checkAuth() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    // 开发模式：允许无需登录
+                    document.getElementById('username').textContent = '访客用户';
+                    return;
+                }
+
+                const user = await getCurrentUser();
+                if (user) {
+                    document.getElementById('username').textContent = user.username;
+                } else {
+                    // 如果获取用户信息失败，仍然允许访问
+                    document.getElementById('username').textContent = '访客用户';
+                }
+            } catch (error) {
+                console.log('认证检查失败，使用访客模式:', error);
+                document.getElementById('username').textContent = '访客用户';
+            }
+        }
+
+        // 退出登录
+        function handleLogout() {
+            if (wsConnection) {
+                wsConnection.close();
+            }
+            try {
+                logout();
+            } catch (error) {
+                console.log('登出失败:', error);
+            }
+            window.location.href = 'login.html';
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            // 延迟初始化，确保模块已加载
+            setTimeout(() => {
+                initThreeJS();
+                // 立即初始化WebSocket连接
+                initWebSocket();
+            }, 100);
+        });
+
+        // 页面卸载时关闭WebSocket
+        window.addEventListener('beforeunload', () => {
+            if (wsConnection) {
+                wsConnection.close();
+            }
+        });
+    </script>
+</body>
+</html>
