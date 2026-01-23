@@ -18,6 +18,21 @@ let followCamera = null;       // 绑定在小车前方的机位
 let activeCamera = null;       // 当前用于渲染的相机
 let cameraMode = 'orbit';      // 'orbit' | 'car_front'
 
+// 自由视角键盘控制
+const freeCamKeyState = {
+    ArrowUp: false,
+    ArrowDown: false,
+    ArrowLeft: false,
+    ArrowRight: false,
+    KeyW: false,
+    KeyS: false,
+    KeyA: false,
+    KeyD: false,
+};
+let keyDownHandler = null;
+let keyUpHandler = null;
+const FREE_CAM_MOVE_SPEED = 0.2; // 自由视角移动速度（单位：世界坐标）
+
 // 小车状态
 let carState = {
     position: { x: 0, y: 0 },
@@ -144,6 +159,12 @@ export function initScene(container) {
 
     // 加载小车模型
     loadCarModel();
+
+    // 绑定键盘事件（自由视角用）
+    keyDownHandler = (event) => handleFreeCameraKey(event, true);
+    keyUpHandler = (event) => handleFreeCameraKey(event, false);
+    window.addEventListener('keydown', keyDownHandler);
+    window.addEventListener('keyup', keyUpHandler);
 
     // 启动渲染循环
     animate();
@@ -492,6 +513,53 @@ function animate() {
         controls.update();
     }
 
+    // 自由视角键盘移动（仅在 orbit 模式下生效，不自动追车）
+    if (cameraMode === 'orbit' && activeCamera === camera) {
+        const freeCamMoving =
+            freeCamKeyState.ArrowUp || freeCamKeyState.KeyW ||
+            freeCamKeyState.ArrowDown || freeCamKeyState.KeyS ||
+            freeCamKeyState.ArrowLeft || freeCamKeyState.KeyA ||
+            freeCamKeyState.ArrowRight || freeCamKeyState.KeyD;
+
+        if (freeCamMoving && camera) {
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            forward.y = 0; // 保持水平移动
+            if (forward.lengthSq() > 0) {
+                forward.normalize();
+            }
+
+            const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+
+            const move = new THREE.Vector3();
+
+            if (freeCamKeyState.ArrowUp || freeCamKeyState.KeyW) {
+                move.add(forward);
+            }
+            if (freeCamKeyState.ArrowDown || freeCamKeyState.KeyS) {
+                move.sub(forward);
+            }
+            if (freeCamKeyState.ArrowRight || freeCamKeyState.KeyD) {
+                move.add(right);
+            }
+            if (freeCamKeyState.ArrowLeft || freeCamKeyState.KeyA) {
+                move.sub(right);
+            }
+
+            if (move.lengthSq() > 0) {
+                move.normalize().multiplyScalar(FREE_CAM_MOVE_SPEED);
+
+                // 飞行模式：相机整体平移，而不是绕世界中心转圈
+                camera.position.add(move);
+                if (controls) {
+                    // 让 OrbitControls 的焦点跟着一起平移，避免围绕原来的中心旋转
+                    controls.target.add(move);
+                }
+                cameraChanged = true;
+            }
+        }
+    }
+
     // 检查相机是否移动（用于按需渲染）
     if (camera) {
         const currentPos = camera.position.clone();
@@ -549,6 +617,23 @@ function updateFPS() {
     }
 }
 
+// ===== 自由视角键盘控制处理 =====
+function handleFreeCameraKey(event, isDown) {
+    const code = event.code;
+
+    if (code in freeCamKeyState) {
+        freeCamKeyState[code] = isDown;
+
+        // 防止页面滚动等默认行为（仅针对方向键）
+        if (code.startsWith('Arrow')) {
+            event.preventDefault();
+        }
+
+        // 有键按下/抬起时请求一次渲染
+        needsRender = true;
+    }
+}
+
 // 导出 FPS 信息（用于 UI 显示）
 export function getFPS() {
     return fpsMonitor.fps;
@@ -596,6 +681,15 @@ export function dispose() {
         if (scene && ChunkManager.chunkGroup) {
             scene.remove(ChunkManager.chunkGroup);
         }
+    }
+
+    if (keyDownHandler) {
+        window.removeEventListener('keydown', keyDownHandler);
+        keyDownHandler = null;
+    }
+    if (keyUpHandler) {
+        window.removeEventListener('keyup', keyUpHandler);
+        keyUpHandler = null;
     }
 
     if (renderer) {
