@@ -174,12 +174,23 @@
             background: #2d2d2d;
             padding: 10px 15px;
             border-bottom: 1px solid #3e3e3e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-
+        
         .canvas-header h3 {
             color: #fff;
             font-size: 14px;
             font-weight: 500;
+        }
+
+        .camera-select {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #ddd;
         }
 
         #canvas-container {
@@ -290,6 +301,13 @@
         <div class="right-panel">
             <div class="canvas-header">
                 <h3>🎮 3D仿真场景</h3>
+                <div class="camera-select">
+                    <span>视角:</span>
+                    <select id="cameraSelector" onchange="setCameraMode(this.value)">
+                        <option value="orbit">自由视角</option>
+                        <option value="car_front">车前视角</option>
+                    </select>
+                </div>
             </div>
             <div id="canvas-container">
                 <div class="loading">正在加载3D场景...</div>
@@ -331,7 +349,8 @@
             initScene, 
             connectWebSocket, 
             sendMessage, 
-            isWebSocketConnected 
+            isWebSocketConnected,
+            setCameraMode
         } from '/js/simulator.js';
         
         // 将模块函数暴露到全局作用域
@@ -339,6 +358,7 @@
         window.connectWebSocket = connectWebSocket;
         window.sendMessage = sendMessage;
         window.isWebSocketConnected = isWebSocketConnected;
+        window.setCameraMode = setCameraMode;
     </script>
     <script>
         let editor;

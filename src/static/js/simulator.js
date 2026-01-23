@@ -13,6 +13,11 @@ let carModel = null;
 let socket = null;
 let isConnected = false;
 
+// 相机相关
+let followCamera = null;       // 绑定在小车前方的机位
+let activeCamera = null;       // 当前用于渲染的相机
+let cameraMode = 'orbit';      // 'orbit' | 'car_front'
+
 // 小车状态
 let carState = {
     position: { x: 0, y: 0 },
@@ -37,14 +42,14 @@ const ChunkManager = {
     chunkSize: 20, // 每个 Chunk 的大小
     loadedChunks: new Map(), // 已加载的 Chunk
     chunkGroup: null, // Chunk 容器组
-    
+
     // 初始化 Chunk 系统
     init(scene) {
         this.chunkGroup = new THREE.Group();
         this.chunkGroup.name = 'ChunkGroup';
         scene.add(this.chunkGroup);
     },
-    
+
     // 获取 Chunk 坐标
     getChunkCoord(x, z) {
         return {
@@ -52,7 +57,7 @@ const ChunkManager = {
             z: Math.floor(z / this.chunkSize)
         };
     },
-    
+
     // 添加 Chunk（未来扩展用）
     addChunk(chunkX, chunkZ, mesh) {
         const key = `${chunkX}_${chunkZ}`;
@@ -63,7 +68,7 @@ const ChunkManager = {
             }
         }
     },
-    
+
     // 移除 Chunk（未来扩展用）
     removeChunk(chunkX, chunkZ) {
         const key = `${chunkX}_${chunkZ}`;
@@ -88,26 +93,35 @@ export function initScene(container) {
     camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
     camera.position.set(15, 12, 15);
     camera.lookAt(0, 0, 0);
-    
-    // 初始化相机位置记录（用于按需渲染）
+
+    // 绑定默认渲染相机为轨道相机
+    activeCamera = camera;
+    cameraMode = 'orbit';
+
+    // 创建绑定在小车前方的机位（先按世界坐标放在原点附近，等小车位置更新后再精确跟随）
+    followCamera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
+    followCamera.position.set(0, 1.0, 2.0);
+    followCamera.lookAt(0, 0.5, 5.0);
+
+    // 初始化相机位置记录（用于按需渲染，只针对轨道相机）
     lastCameraPosition.copy(camera.position);
     lastCameraRotation.copy(camera.rotation);
 
     // 创建渲染器（性能优化）
-    renderer = new THREE.WebGLRenderer({ 
+    renderer = new THREE.WebGLRenderer({
         antialias: true,
         powerPreference: "high-performance" // 优先使用高性能 GPU
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 限制像素比，提升性能
-    
+
     // 降低阴影质量以提升性能
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.BasicShadowMap; // 从 PCFSoftShadowMap 改为 BasicShadowMap，降低 GPU 压力
     renderer.shadowMap.autoUpdate = false; // 禁用自动更新，手动控制阴影更新
-    
+
     container.appendChild(renderer.domElement);
-    
+
     // 初始化 Chunk 系统
     ChunkManager.init(scene);
 
@@ -150,7 +164,7 @@ function addLights() {
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(10, 20, 15);
     directionalLight.castShadow = true;
-    
+
     // 降低阴影质量以提升性能（从 2048x2048 降至 512x512）
     directionalLight.shadow.mapSize.width = 512;
     directionalLight.shadow.mapSize.height = 512;
@@ -162,7 +176,7 @@ function addLights() {
     directionalLight.shadow.camera.bottom = -20;
     directionalLight.shadow.bias = -0.0001; // 减少阴影瑕疵
     directionalLight.shadow.radius = 2; // 阴影模糊半径（BasicShadowMap 下影响较小）
-    
+
     scene.add(directionalLight);
 }
 
@@ -174,7 +188,7 @@ function createGround() {
 
     // 地面平面（接收阴影）- 使用 Chunk 系统管理
     const groundGeometry = new THREE.PlaneGeometry(40, 40);
-    const groundMaterial = new THREE.MeshStandardMaterial({ 
+    const groundMaterial = new THREE.MeshStandardMaterial({
         color: 0x228b22,
         roughness: 0.8,
         metalness: 0.2
@@ -183,11 +197,11 @@ function createGround() {
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     ground.name = 'Ground';
-    
+
     // 将地面添加到 Chunk 系统（当前为单个 Chunk，未来可扩展为多个）
     const chunkCoord = ChunkManager.getChunkCoord(0, 0);
     ChunkManager.addChunk(chunkCoord.x, chunkCoord.z, ground);
-    
+
     scene.add(ground);
 }
 
@@ -195,7 +209,7 @@ function createGround() {
 function drawLinePath() {
     // 合并所有路径点到一个几何体，减少 draw call
     const allPoints = [];
-    
+
     // 直线路径，从 (0, 0, -15) 到 (0, 0, 15)
     for (let z = -15; z <= 15; z += 0.5) {
         allPoints.push(new THREE.Vector3(0, 0.02, z));
@@ -208,11 +222,11 @@ function drawLinePath() {
 
     // 使用单个几何体和材质，减少 draw call
     const lineGeometry = new THREE.BufferGeometry().setFromPoints(allPoints);
-    const lineMaterial = new THREE.LineBasicMaterial({ 
-        color: 0x000000, 
-        linewidth: 3 
+    const lineMaterial = new THREE.LineBasicMaterial({
+        color: 0x000000,
+        linewidth: 3
     });
-    
+
     // 如果路径是连续的，使用 Line；如果需要分段，使用 LineSegments
     const line = new THREE.Line(lineGeometry, lineMaterial);
     line.name = 'PathLine';
@@ -222,7 +236,7 @@ function drawLinePath() {
 // ===== 5. 加载小车模型 =====
 function loadCarModel() {
     const loader = new GLTFLoader();
-    
+
     // 显示加载提示
     console.log('正在加载小车模型...');
 
@@ -230,14 +244,14 @@ function loadCarModel() {
         '/assets/models/icar1.glb',
         (gltf) => {
             carModel = gltf.scene;
-            
+
             // 调整模型大小和位置
             carModel.scale.set(1, 1, 1);
             carModel.position.set(0, 0.5, 0);
             carModel.rotation.y = Math.PI / 2;     // 如果模型默认朝 +X（右侧朝前），旋转 90° 让正面朝 +Z
             // carModel.rotation.y = -Math.PI / 2;  // 如果默认朝 -X（左侧朝前）
             // carModel.rotation.y = Math.PI;       // 如果默认朝 -Z（背对前方）
-            // carModel.rotation.y = 0;             // 
+            // carModel.rotation.y = 0;             //
             // 启用阴影
             carModel.traverse((child) => {
                 if (child.isMesh) {
@@ -245,11 +259,11 @@ function loadCarModel() {
                     child.receiveShadow = true;
                 }
             });
-            
+
             scene.add(carModel);
             console.log('✓ 小车模型加载成功');
             console.log('模型位置:', carModel.position);
-            
+
             // 移除加载提示
             const loading = document.querySelector('.loading');
             if (loading) {
@@ -272,7 +286,7 @@ function loadCarModel() {
 // ===== 6. 创建备用小车（模型加载失败时使用） =====
 function createFallbackCar() {
     console.log('使用备用小车模型');
-    
+
     const carGroup = new THREE.Group();
 
     // 车身（蓝色长方体）
@@ -286,14 +300,14 @@ function createFallbackCar() {
     // 车轮（4个黑色圆柱）
     const wheelGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16);
     const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
-    
+
     const wheelPositions = [
         [-0.4, 0.2, 0.6],   // 左前
         [0.4, 0.2, 0.6],    // 右前
         [-0.4, 0.2, -0.6],  // 左后
         [0.4, 0.2, -0.6]    // 右后
     ];
-    
+
     wheelPositions.forEach(pos => {
         const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
         wheel.position.set(...pos);
@@ -304,7 +318,7 @@ function createFallbackCar() {
 
     carModel = carGroup;
     scene.add(carModel);
-    
+
     // 移除加载提示
     const loading = document.querySelector('.loading');
     if (loading) {
@@ -315,15 +329,15 @@ function createFallbackCar() {
 // ===== 7. WebSocket 连接 =====
 export function connectWebSocket(url, callbacks = {}) {
     console.log(`正在连接 WebSocket: ${url}`);
-    
+
     // 如果已有连接，先关闭它
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
     }
-    
+
     // 创建新的 WebSocket 连接
     const newSocket = new WebSocket(url);
-    
+
     // 更新全局 socket 变量
     socket = newSocket;
 
@@ -352,7 +366,7 @@ export function connectWebSocket(url, callbacks = {}) {
         console.log('WebSocket 连接已关闭');
         if (callbacks.onClose) callbacks.onClose();
     };
-    
+
     // 返回连接对象，用于前端关闭连接
     return socket;
 }
@@ -426,11 +440,26 @@ function updateCarPosition(x, y, rotation) {
     // Three.js: x=左右, z=前后, y=上下
     carModel.position.x = x;
     carModel.position.z = y;
-    carModel.rotation.y = rotation * Math.PI / 180; // 转为弧度，并取反
-    
+    carModel.rotation.y = rotation * Math.PI / 180; // 转为弧度
+
+    // 更新前方机位：放在车头稍微偏上，并看向车前方
+    if (followCamera) {
+        const cameraOffset = new THREE.Vector3(0, 0.7, 1.2);  // 车头前上方
+        const lookAtOffset = new THREE.Vector3(0, 0.4, 4.0);  // 车前方更远一点
+
+        const worldCameraPos = cameraOffset.clone();
+        const worldLookAtPos = lookAtOffset.clone();
+
+        carModel.localToWorld(worldCameraPos);
+        carModel.localToWorld(worldLookAtPos);
+
+        followCamera.position.copy(worldCameraPos);
+        followCamera.lookAt(worldLookAtPos);
+    }
+
     // 标记需要渲染（按需渲染）
     needsRender = true;
-    
+
     console.log('[DEBUG] Three.js model updated, x:', carModel.position.x, 'z:', carModel.position.z, 'rotation.y:', carModel.rotation.y); // 调试信息
 }
 
@@ -456,23 +485,23 @@ export function sendMessage(message) {
 // ===== 11. 渲染循环（按需渲染优化） =====
 function animate() {
     animationFrameId = requestAnimationFrame(animate);
-    
+
     // 更新控制器
     let cameraChanged = false;
     if (controls) {
         controls.update();
     }
-    
+
     // 检查相机是否移动（用于按需渲染）
     if (camera) {
         const currentPos = camera.position.clone();
         const currentRot = camera.rotation.clone();
-        
+
         // 使用阈值比较，避免浮点数精度问题
         const posThreshold = 0.001;
         const rotThreshold = 0.001;
-        
-        if (currentPos.distanceTo(lastCameraPosition) > posThreshold || 
+
+        if (currentPos.distanceTo(lastCameraPosition) > posThreshold ||
             Math.abs(currentRot.x - lastCameraRotation.x) > rotThreshold ||
             Math.abs(currentRot.y - lastCameraRotation.y) > rotThreshold ||
             Math.abs(currentRot.z - lastCameraRotation.z) > rotThreshold) {
@@ -481,22 +510,23 @@ function animate() {
             lastCameraRotation.copy(currentRot);
         }
     }
-    
+
     // 按需渲染：只在场景变化时渲染
     if (needsRender || cameraChanged) {
         // 更新 FPS 监控
         updateFPS();
-        
+
         // 渲染场景
-        if (renderer && scene && camera) {
-            renderer.render(scene, camera);
+        const renderCamera = activeCamera || camera;
+        if (renderer && scene && renderCamera) {
+            renderer.render(scene, renderCamera);
         }
-        
+
         // 仅在需要时更新阴影（降低 GPU 压力）
         if (needsRender && renderer.shadowMap.enabled) {
             renderer.shadowMap.needsUpdate = true;
         }
-        
+
         needsRender = false;
     }
 }
@@ -505,12 +535,12 @@ function animate() {
 function updateFPS() {
     const currentTime = performance.now();
     fpsMonitor.frameCount++;
-    
+
     if (currentTime >= fpsMonitor.lastTime + 1000) {
         fpsMonitor.fps = fpsMonitor.frameCount;
         fpsMonitor.frameCount = 0;
         fpsMonitor.lastTime = currentTime;
-        
+
         // 如果 FPS 过低，自动降低渲染质量
         if (fpsMonitor.fps < 30) {
             console.warn(`FPS 较低: ${fpsMonitor.fps}，考虑降低渲染质量`);
@@ -529,10 +559,20 @@ function onWindowResize() {
     const container = renderer.domElement.parentElement;
     if (!container) return;
 
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
+    const aspect = container.clientWidth / container.clientHeight;
+
+    if (camera) {
+        camera.aspect = aspect;
+        camera.updateProjectionMatrix();
+    }
+
+    if (followCamera) {
+        followCamera.aspect = aspect;
+        followCamera.updateProjectionMatrix();
+    }
+
     renderer.setSize(container.clientWidth, container.clientHeight);
-    
+
     // 窗口大小变化时需要重新渲染
     needsRender = true;
 }
@@ -545,7 +585,7 @@ export function dispose() {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
     }
-    
+
     // 清理 Chunk 系统
     if (ChunkManager.chunkGroup) {
         ChunkManager.loadedChunks.forEach((chunk, key) => {
@@ -557,7 +597,7 @@ export function dispose() {
             scene.remove(ChunkManager.chunkGroup);
         }
     }
-    
+
     if (renderer) {
         renderer.dispose();
     }
@@ -577,7 +617,32 @@ export function requestRender() {
     needsRender = true;
 }
 
-// ===== 15. 获取当前状态 =====
+// ===== 16. 相机模式切换（暴露给前端下拉框） =====
+export function setCameraMode(mode) {
+    if (mode !== 'orbit' && mode !== 'car_front') {
+        console.warn('未知相机模式:', mode);
+        return;
+    }
+
+    cameraMode = mode;
+
+    if (mode === 'orbit') {
+        activeCamera = camera || activeCamera;
+        if (controls) {
+            controls.enabled = true;
+        }
+    } else if (mode === 'car_front') {
+        activeCamera = followCamera || camera || activeCamera;
+        if (controls) {
+            controls.enabled = false;
+        }
+    }
+
+    // 切换相机后立即刷新一帧
+    needsRender = true;
+}
+
+// ===== 17. 获取当前状态 =====
 export function getCarState() {
     return { ...carState };
 }

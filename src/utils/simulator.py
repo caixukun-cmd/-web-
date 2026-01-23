@@ -29,7 +29,7 @@ class VirtualCar:
         self.motion_duration: float = 0.0       # 0表示无定时（持续运动）
 
         self.last_update: float = time.time()
-        self.max_speed: float = 100.0
+        self.max_speed: float = 200.0
 
         # 传感器数据（暂时保留）
         self.sensors: Dict[str, Any] = {
