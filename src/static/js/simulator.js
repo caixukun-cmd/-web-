@@ -154,9 +154,11 @@ function loadCarModel() {
             
             // 调整模型大小和位置
             carModel.scale.set(1, 1, 1);
-            carModel.position.set(0, 0, 0);
-            carModel.rotation.y = 0;
-            
+            carModel.position.set(0, 0.5, 0);
+            carModel.rotation.y = Math.PI / 2;     // 如果模型默认朝 +X（右侧朝前），旋转 90° 让正面朝 +Z
+            // carModel.rotation.y = -Math.PI / 2;  // 如果默认朝 -X（左侧朝前）
+            // carModel.rotation.y = Math.PI;       // 如果默认朝 -Z（背对前方）
+            // carModel.rotation.y = 0;             // 
             // 启用阴影
             carModel.traverse((child) => {
                 if (child.isMesh) {
@@ -167,6 +169,7 @@ function loadCarModel() {
             
             scene.add(carModel);
             console.log('✓ 小车模型加载成功');
+            console.log('模型位置:', carModel.position);
             
             // 移除加载提示
             const loading = document.querySelector('.loading');
@@ -332,7 +335,6 @@ function updateCarPosition(x, y, rotation) {
         console.log('[DEBUG] carModel is null, skipping position update'); // 调试信息
         return;
     }
-
     // 更新内部状态
     carState.position.x = x;
     carState.position.y = y;
@@ -345,7 +347,7 @@ function updateCarPosition(x, y, rotation) {
     // Three.js: x=左右, z=前后, y=上下
     carModel.position.x = x;
     carModel.position.z = y;
-    carModel.rotation.y = -rotation * Math.PI / 180; // 转为弧度，并取反
+    carModel.rotation.y = rotation * Math.PI / 180; // 转为弧度，并取反
     
     console.log('[DEBUG] Three.js model updated, x:', carModel.position.x, 'z:', carModel.position.z, 'rotation.y:', carModel.rotation.y); // 调试信息
 }
