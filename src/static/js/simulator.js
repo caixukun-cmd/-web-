@@ -21,6 +21,62 @@ let carState = {
     isMoving: false
 };
 
+// ===== 性能优化相关变量 =====
+let needsRender = true; // 按需渲染标志
+let lastCameraPosition = new THREE.Vector3();
+let lastCameraRotation = new THREE.Euler();
+let animationFrameId = null;
+let fpsMonitor = {
+    lastTime: performance.now(),
+    frameCount: 0,
+    fps: 60
+};
+
+// Chunk 系统基础架构（为未来扩展准备）
+const ChunkManager = {
+    chunkSize: 20, // 每个 Chunk 的大小
+    loadedChunks: new Map(), // 已加载的 Chunk
+    chunkGroup: null, // Chunk 容器组
+    
+    // 初始化 Chunk 系统
+    init(scene) {
+        this.chunkGroup = new THREE.Group();
+        this.chunkGroup.name = 'ChunkGroup';
+        scene.add(this.chunkGroup);
+    },
+    
+    // 获取 Chunk 坐标
+    getChunkCoord(x, z) {
+        return {
+            x: Math.floor(x / this.chunkSize),
+            z: Math.floor(z / this.chunkSize)
+        };
+    },
+    
+    // 添加 Chunk（未来扩展用）
+    addChunk(chunkX, chunkZ, mesh) {
+        const key = `${chunkX}_${chunkZ}`;
+        if (!this.loadedChunks.has(key)) {
+            this.loadedChunks.set(key, mesh);
+            if (this.chunkGroup) {
+                this.chunkGroup.add(mesh);
+            }
+        }
+    },
+    
+    // 移除 Chunk（未来扩展用）
+    removeChunk(chunkX, chunkZ) {
+        const key = `${chunkX}_${chunkZ}`;
+        const chunk = this.loadedChunks.get(key);
+        if (chunk && this.chunkGroup) {
+            this.chunkGroup.remove(chunk);
+            chunk.geometry?.dispose();
+            chunk.material?.dispose();
+            this.loadedChunks.delete(key);
+        }
+    }
+};
+
 // ===== 1. 初始化 Three.js 场景 =====
 export function initScene(container) {
     // 创建场景
@@ -32,14 +88,28 @@ export function initScene(container) {
     camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
     camera.position.set(15, 12, 15);
     camera.lookAt(0, 0, 0);
+    
+    // 初始化相机位置记录（用于按需渲染）
+    lastCameraPosition.copy(camera.position);
+    lastCameraRotation.copy(camera.rotation);
 
-    // 创建渲染器
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    // 创建渲染器（性能优化）
+    renderer = new THREE.WebGLRenderer({ 
+        antialias: true,
+        powerPreference: "high-performance" // 优先使用高性能 GPU
+    });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 限制像素比，提升性能
+    
+    // 降低阴影质量以提升性能
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.BasicShadowMap; // 从 PCFSoftShadowMap 改为 BasicShadowMap，降低 GPU 压力
+    renderer.shadowMap.autoUpdate = false; // 禁用自动更新，手动控制阴影更新
+    
     container.appendChild(renderer.domElement);
+    
+    // 初始化 Chunk 系统
+    ChunkManager.init(scene);
 
     // 添加轨道控制器
     controls = new OrbitControls(camera, renderer.domElement);
@@ -81,26 +151,28 @@ function addLights() {
     directionalLight.position.set(10, 20, 15);
     directionalLight.castShadow = true;
     
-    // 优化阴影
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
+    // 降低阴影质量以提升性能（从 2048x2048 降至 512x512）
+    directionalLight.shadow.mapSize.width = 512;
+    directionalLight.shadow.mapSize.height = 512;
     directionalLight.shadow.camera.near = 0.5;
     directionalLight.shadow.camera.far = 50;
     directionalLight.shadow.camera.left = -20;
     directionalLight.shadow.camera.right = 20;
     directionalLight.shadow.camera.top = 20;
     directionalLight.shadow.camera.bottom = -20;
+    directionalLight.shadow.bias = -0.0001; // 减少阴影瑕疵
+    directionalLight.shadow.radius = 2; // 阴影模糊半径（BasicShadowMap 下影响较小）
     
     scene.add(directionalLight);
 }
 
-// ===== 3. 创建地面（40x40 网格） =====
+// ===== 3. 创建地面（40x40 网格，支持 Chunk 扩展） =====
 function createGround() {
-    // 地面网格
-    const gridHelper = new THREE.GridHelper(40, 40, 0x888888, 0xcccccc);
+    // 地面网格（降低细分以提升性能）
+    const gridHelper = new THREE.GridHelper(40, 20, 0x888888, 0xcccccc); // 从 40 格降至 20 格
     scene.add(gridHelper);
 
-    // 地面平面（接收阴影）
+    // 地面平面（接收阴影）- 使用 Chunk 系统管理
     const groundGeometry = new THREE.PlaneGeometry(40, 40);
     const groundMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x228b22,
@@ -110,34 +182,41 @@ function createGround() {
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
+    ground.name = 'Ground';
+    
+    // 将地面添加到 Chunk 系统（当前为单个 Chunk，未来可扩展为多个）
+    const chunkCoord = ChunkManager.getChunkCoord(0, 0);
+    ChunkManager.addChunk(chunkCoord.x, chunkCoord.z, ground);
+    
     scene.add(ground);
 }
 
-// ===== 4. 创建黑线路径（循线轨道） =====
+// ===== 4. 创建黑线路径（循线轨道，优化 draw call） =====
 function drawLinePath() {
-    // 创建一个简单的直线路径，从 (0, 0, -15) 到 (0, 0, 15)
-    const points = [];
+    // 合并所有路径点到一个几何体，减少 draw call
+    const allPoints = [];
+    
+    // 直线路径，从 (0, 0, -15) 到 (0, 0, 15)
     for (let z = -15; z <= 15; z += 0.5) {
-        points.push(new THREE.Vector3(0, 0.02, z)); // y=0.02 略高于地面
+        allPoints.push(new THREE.Vector3(0, 0.02, z));
     }
 
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    // 转弯路径
+    for (let x = 0; x <= 10; x += 0.5) {
+        allPoints.push(new THREE.Vector3(x, 0.02, 15));
+    }
+
+    // 使用单个几何体和材质，减少 draw call
+    const lineGeometry = new THREE.BufferGeometry().setFromPoints(allPoints);
     const lineMaterial = new THREE.LineBasicMaterial({ 
         color: 0x000000, 
         linewidth: 3 
     });
+    
+    // 如果路径是连续的，使用 Line；如果需要分段，使用 LineSegments
     const line = new THREE.Line(lineGeometry, lineMaterial);
+    line.name = 'PathLine';
     scene.add(line);
-
-    // 可以扩展更复杂的路径（如转弯、圆形等）
-    // 示例：添加一个转弯
-    const turnPoints = [];
-    for (let x = 0; x <= 10; x += 0.5) {
-        turnPoints.push(new THREE.Vector3(x, 0.02, 15));
-    }
-    const turnGeometry = new THREE.BufferGeometry().setFromPoints(turnPoints);
-    const turnLine = new THREE.Line(turnGeometry, lineMaterial);
-    scene.add(turnLine);
 }
 
 // ===== 5. 加载小车模型 =====
@@ -349,6 +428,9 @@ function updateCarPosition(x, y, rotation) {
     carModel.position.z = y;
     carModel.rotation.y = rotation * Math.PI / 180; // 转为弧度，并取反
     
+    // 标记需要渲染（按需渲染）
+    needsRender = true;
+    
     console.log('[DEBUG] Three.js model updated, x:', carModel.position.x, 'z:', carModel.position.z, 'rotation.y:', carModel.rotation.y); // 调试信息
 }
 
@@ -371,19 +453,75 @@ export function sendMessage(message) {
     }
 }
 
-// ===== 11. 渲染循环 =====
+// ===== 11. 渲染循环（按需渲染优化） =====
 function animate() {
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
     
     // 更新控制器
+    let cameraChanged = false;
     if (controls) {
         controls.update();
     }
-
-    // 渲染场景
-    if (renderer && scene && camera) {
-        renderer.render(scene, camera);
+    
+    // 检查相机是否移动（用于按需渲染）
+    if (camera) {
+        const currentPos = camera.position.clone();
+        const currentRot = camera.rotation.clone();
+        
+        // 使用阈值比较，避免浮点数精度问题
+        const posThreshold = 0.001;
+        const rotThreshold = 0.001;
+        
+        if (currentPos.distanceTo(lastCameraPosition) > posThreshold || 
+            Math.abs(currentRot.x - lastCameraRotation.x) > rotThreshold ||
+            Math.abs(currentRot.y - lastCameraRotation.y) > rotThreshold ||
+            Math.abs(currentRot.z - lastCameraRotation.z) > rotThreshold) {
+            cameraChanged = true;
+            lastCameraPosition.copy(currentPos);
+            lastCameraRotation.copy(currentRot);
+        }
     }
+    
+    // 按需渲染：只在场景变化时渲染
+    if (needsRender || cameraChanged) {
+        // 更新 FPS 监控
+        updateFPS();
+        
+        // 渲染场景
+        if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+        }
+        
+        // 仅在需要时更新阴影（降低 GPU 压力）
+        if (needsRender && renderer.shadowMap.enabled) {
+            renderer.shadowMap.needsUpdate = true;
+        }
+        
+        needsRender = false;
+    }
+}
+
+// ===== FPS 监控和性能统计 =====
+function updateFPS() {
+    const currentTime = performance.now();
+    fpsMonitor.frameCount++;
+    
+    if (currentTime >= fpsMonitor.lastTime + 1000) {
+        fpsMonitor.fps = fpsMonitor.frameCount;
+        fpsMonitor.frameCount = 0;
+        fpsMonitor.lastTime = currentTime;
+        
+        // 如果 FPS 过低，自动降低渲染质量
+        if (fpsMonitor.fps < 30) {
+            console.warn(`FPS 较低: ${fpsMonitor.fps}，考虑降低渲染质量`);
+            // 可以在这里添加自适应降级逻辑
+        }
+    }
+}
+
+// 导出 FPS 信息（用于 UI 显示）
+export function getFPS() {
+    return fpsMonitor.fps;
 }
 
 // ===== 12. 窗口自适应 =====
@@ -394,11 +532,32 @@ function onWindowResize() {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
+    
+    // 窗口大小变化时需要重新渲染
+    needsRender = true;
 }
 
 
 // ===== 14. 清理资源 =====
 export function dispose() {
+    // 取消动画循环
+    if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+    
+    // 清理 Chunk 系统
+    if (ChunkManager.chunkGroup) {
+        ChunkManager.loadedChunks.forEach((chunk, key) => {
+            if (chunk.geometry) chunk.geometry.dispose();
+            if (chunk.material) chunk.material.dispose();
+        });
+        ChunkManager.loadedChunks.clear();
+        if (scene && ChunkManager.chunkGroup) {
+            scene.remove(ChunkManager.chunkGroup);
+        }
+    }
+    
     if (renderer) {
         renderer.dispose();
     }
@@ -413,6 +572,11 @@ export function dispose() {
     window.removeEventListener('resize', onWindowResize);
 }
 
+// ===== 15. 强制渲染（用于外部调用） =====
+export function requestRender() {
+    needsRender = true;
+}
+
 // ===== 15. 获取当前状态 =====
 export function getCarState() {
     return { ...carState };
@@ -421,3 +585,109 @@ export function getCarState() {
 export function isWebSocketConnected() {
     return isConnected;
 }
+
+// ---- Chunk 配置 -------------------------------------------------------
+const CHUNK_CONFIG = {
+  SIZE: ChunkManager.chunkSize || 20,
+  RANGE: 2, // 1 = 3x3 chunks, 2 = 5x5 chunks
+  ENABLE_DEBUG: false
+}
+
+// ---- Chunk 内容生成器 ----
+function generateChunk(cx, cz) {
+  const group = new THREE.Group()
+  group.position.set(cx * CHUNK_CONFIG.SIZE, 0, cz * CHUNK_CONFIG.SIZE)
+
+  // 地面
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(CHUNK_CONFIG.SIZE, CHUNK_CONFIG.SIZE),
+    new THREE.MeshStandardMaterial({
+      color: ((cx + cz) % 2 === 0) ? 0x6fa36f : 0x5c8c5c
+    })
+  )
+  floor.rotation.x = -Math.PI / 2
+  floor.receiveShadow = true
+  group.add(floor)
+
+  // 示例障碍物（不影响小车逻辑，仅视觉）
+  const obstacleCount = Math.abs((cx * 92821 + cz * 68917) % 4)
+
+  for (let i = 0; i < obstacleCount; i++) {
+    const box = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshStandardMaterial({ color: 0x666666 })
+    )
+    box.position.set(
+      (Math.random() - 0.5) * CHUNK_CONFIG.SIZE * 0.7,
+      0.5,
+      (Math.random() - 0.5) * CHUNK_CONFIG.SIZE * 0.7
+    )
+    box.castShadow = true
+    group.add(box)
+  }
+
+  return group
+}
+
+// ---- Chunk 自动加载与卸载 ----
+function updateChunksByCarPosition() {
+  if (!carModel || !ChunkManager) return
+
+  const x = carModel.position.x
+  const z = carModel.position.z
+
+  const { x: cx, z: cz } = ChunkManager.getChunkCoord(x, z)
+
+  const needed = new Set()
+
+  for (let dx = -CHUNK_CONFIG.RANGE; dx <= CHUNK_CONFIG.RANGE; dx++) {
+    for (let dz = -CHUNK_CONFIG.RANGE; dz <= CHUNK_CONFIG.RANGE; dz++) {
+      const nx = cx + dx
+      const nz = cz + dz
+      const key = `${nx}_${nz}`
+
+      needed.add(key)
+
+      if (!ChunkManager.loadedChunks.has(key)) {
+        const chunk = generateChunk(nx, nz)
+        ChunkManager.addChunk(nx, nz, chunk)
+
+        if (CHUNK_CONFIG.ENABLE_DEBUG) {
+          console.log('Chunk loaded:', key)
+        }
+      }
+    }
+  }
+
+  // 卸载不需要的 chunk
+  ChunkManager.loadedChunks.forEach((_, key) => {
+    if (!needed.has(key)) {
+      const [x, z] = key.split('_').map(Number)
+      ChunkManager.removeChunk(x, z)
+
+      if (CHUNK_CONFIG.ENABLE_DEBUG) {
+        console.log('Chunk unloaded:', key)
+      }
+    }
+  })
+}
+
+// ---- Hook 到你的主动画循环（不替换、不覆盖） ----
+(function hookChunkUpdater() {
+  const originalAnimate = window.animate
+
+  // 如果你已有 animate()，我们不覆盖，只“并行补丁”
+  if (typeof originalAnimate === 'function') {
+    window.animate = function () {
+      updateChunksByCarPosition()
+      originalAnimate()
+    }
+  } else {
+    // 如果没有 animate，全局挂载一个最小循环（只负责 chunk）
+    function fallbackLoop() {
+      requestAnimationFrame(fallbackLoop)
+      updateChunksByCarPosition()
+    }
+    fallbackLoop()
+  }
+})()

@@ -11,7 +11,9 @@ from typing import Dict, Any
 class VirtualCar:
     """虚拟小车类"""
 
-    def __init__(self):
+
+    def __init__(self, world_limit=1000):
+        self.world_limit = world_limit
         # 位置和姿态
         self.x: float = 0.0
         self.y: float = 0.0
@@ -97,8 +99,8 @@ class VirtualCar:
             self.y += distance * math.cos(rad)
 
             # 简单范围限制（可根据实际场景调整）
-            self.x = max(-15, min(15, self.x))
-            self.y = max(-15, min(15, self.y))
+            self.x = max(-self.world_limit, min(self.world_limit, self.x))
+            self.y = max(-self.world_limit, min(self.world_limit, self.y))
 
     def get_position(self) -> Dict[str, float]:
         return {
