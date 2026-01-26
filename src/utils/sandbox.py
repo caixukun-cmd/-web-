@@ -106,9 +106,13 @@ class SafeCarAPI:
     async def wait(self):  # 修改为 async
         if self._stopped:
             return
-        while (abs(self.car.current_speed) > 0.01 and
+        # 同时检查直线运动和转向运动
+        while ((abs(self.car.current_speed) > 0.01 and
                (self.car.motion_duration == 0 or
-                (time.time() - self.car.motion_start_time) < self.car.motion_duration)):
+                (time.time() - self.car.motion_start_time) < self.car.motion_duration)) or
+               (abs(self.car.current_turn_speed) > 0.01 and
+                (time.time() - self.car.turn_start_time) < self.car.turn_duration)):
+            
             if self._stopped:
                 break
             await asyncio.sleep(0.05)  # 实际异步等待

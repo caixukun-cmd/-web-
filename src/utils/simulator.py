@@ -28,6 +28,12 @@ class VirtualCar:
         self.motion_start_time: float = 0.0
         self.motion_duration: float = 0.0       # 0表示无定时（持续运动）
 
+        # 转向控制
+        self.current_turn_speed: float = 0.0    # 当前转向速度（度/秒）
+        self.turn_start_time: float = 0.0
+        self.turn_duration: float = 0.0
+        self.max_turn_speed: float = 90.0       # 默认转向速度：90度/秒
+
         self.last_update: float = time.time()
         self.max_speed: float = 200.0
 
@@ -59,28 +65,49 @@ class VirtualCar:
         self.is_moving = abs(self.current_speed) > 0.01
 
     def turn_right(self, angle: float):
-        """右转（瞬时）"""
-        self.rotation = (self.rotation + angle) % 360
-        print(f"右转 {angle}° → 当前朝向: {self.rotation:.1f}°")
+        """右转（平滑）"""
+        angle = abs(angle)
+        duration = angle / self.max_turn_speed
+        self.current_turn_speed = self.max_turn_speed
+        self.turn_start_time = time.time()
+        self.turn_duration = duration
+        print(f"右转命令: 角度={angle}°, 预估耗时={duration:.2f}s")
 
     def turn_left(self, angle: float):
-        """左转（瞬时）"""
-        self.rotation = (self.rotation - angle) % 360
-        print(f"左转 {angle}° → 当前朝向: {self.rotation:.1f}°")
+        """左转（平滑）"""
+        angle = abs(angle)
+        duration = angle / self.max_turn_speed
+        self.current_turn_speed = -self.max_turn_speed
+        self.turn_start_time = time.time()
+        self.turn_duration = duration
+        print(f"左转命令: 角度={angle}°, 预估耗时={duration:.2f}s")
 
     def stop(self):
         """立即停止所有运动"""
         self.current_speed = 0.0
         self.target_speed = 0.0
         self.motion_duration = 0.0
+        self.current_turn_speed = 0.0
+        self.turn_duration = 0.0
         self.is_moving = False
         print("小车停止")
 
     def update_position(self, delta_time: float):
-        """每帧更新位置"""
+        """每帧更新位置和角度"""
         current_time = time.time()
 
-        # 判断当前是否应该保持运动
+        # 1. 处理平滑转向
+        if self.turn_duration > 0:
+            elapsed = current_time - self.turn_start_time
+            if elapsed >= self.turn_duration:
+                # 转向完成
+                self.current_turn_speed = 0.0
+                self.turn_duration = 0.0
+            else:
+                # 逐帧更新角度
+                self.rotation = (self.rotation + self.current_turn_speed * delta_time) % 360
+
+        # 2. 处理直线运动定时
         if self.motion_duration > 0:
             # 有定时 → 检查是否超时
             if (current_time - self.motion_start_time) >= self.motion_duration:
@@ -120,6 +147,8 @@ class VirtualCar:
         self.current_speed = 0.0
         self.target_speed = 0.0
         self.motion_duration = 0.0
+        self.current_turn_speed = 0.0
+        self.turn_duration = 0.0
         self.is_moving = False
         self.motion_start_time = time.time()
 
