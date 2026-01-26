@@ -32,7 +32,8 @@ class VirtualCar:
         self.current_turn_speed: float = 0.0    # 当前转向速度（度/秒）
         self.turn_start_time: float = 0.0
         self.turn_duration: float = 0.0
-        self.max_turn_speed: float = 180.0       # 默认转向速度：180度/秒
+        self.target_rotation: float = 0.0       # 目标旋转角度
+        self.max_turn_speed: float = 180.0      # 默认转向速度：180度/秒
 
         self.last_update: float = time.time()
         self.max_speed: float = 200.0
@@ -67,20 +68,22 @@ class VirtualCar:
     def turn_right(self, angle: float):
         """右转（平滑）"""
         angle = abs(angle)
+        self.target_rotation = (self.rotation + angle) % 360
         duration = angle / self.max_turn_speed
         self.current_turn_speed = self.max_turn_speed
         self.turn_start_time = time.time()
         self.turn_duration = duration
-        print(f"右转命令: 角度={angle}°, 预估耗时={duration:.2f}s")
+        print(f"右转命令: 角度={angle}°, 目标角度={self.target_rotation:.2f}°, 预估耗时={duration:.2f}s")
 
     def turn_left(self, angle: float):
         """左转（平滑）"""
         angle = abs(angle)
+        self.target_rotation = (self.rotation - angle) % 360
         duration = angle / self.max_turn_speed
         self.current_turn_speed = -self.max_turn_speed
         self.turn_start_time = time.time()
         self.turn_duration = duration
-        print(f"左转命令: 角度={angle}°, 预估耗时={duration:.2f}s")
+        print(f"左转命令: 角度={angle}°, 目标角度={self.target_rotation:.2f}°, 预估耗时={duration:.2f}s")
 
     def stop(self):
         """立即停止所有运动"""
@@ -100,7 +103,8 @@ class VirtualCar:
         if self.turn_duration > 0:
             elapsed = current_time - self.turn_start_time
             if elapsed >= self.turn_duration:
-                # 转向完成
+                # 转向完成，精确设置到目标角度
+                self.rotation = self.target_rotation
                 self.current_turn_speed = 0.0
                 self.turn_duration = 0.0
             else:
@@ -149,6 +153,7 @@ class VirtualCar:
         self.motion_duration = 0.0
         self.current_turn_speed = 0.0
         self.turn_duration = 0.0
+        self.target_rotation = 0.0
         self.is_moving = False
         self.motion_start_time = time.time()
 
