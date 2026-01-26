@@ -351,7 +351,10 @@
             sendMessage, 
             isWebSocketConnected,
             setCameraMode,
-            resetFreeCamera
+            resetFreeCamera,
+            clearPath,
+            startPathRecording,
+            stopPathRecording
         } from '/js/simulator.js';
         
         // 将模块函数暴露到全局作用域
@@ -361,6 +364,9 @@
         window.isWebSocketConnected = isWebSocketConnected;
         window.setCameraMode = setCameraMode;
         window.resetFreeCamera = resetFreeCamera;
+        window.clearPath = clearPath;
+        window.startPathRecording = startPathRecording;
+        window.stopPathRecording = stopPathRecording;
     </script>
     <script>
         let editor;
@@ -558,6 +564,11 @@
                         document.getElementById('stopBtn').disabled = false;
                         document.getElementById('homeBtn').disabled = true;  // 运行时禁用归位按钮
                         
+                        // 开启路径记录器
+                        if (window.startPathRecording) {
+                            window.startPathRecording();
+                        }
+                        
                         addConsoleLog('开始执行代码...', 'info');
                         
                         sendMessage({
@@ -582,6 +593,11 @@
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('homeBtn').disabled = true;  // 运行时禁用归位按钮
 
+            // 开启路径记录器
+            if (window.startPathRecording) {
+                window.startPathRecording();
+            }
+
             addConsoleLog('开始执行代码...', 'info');
             
             sendMessage({
@@ -600,6 +616,12 @@
             document.getElementById('runBtn').disabled = false;
             document.getElementById('stopBtn').disabled = true;
             document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
+            
+            // 关闭路径记录器
+            if (window.stopPathRecording) {
+                window.stopPathRecording();
+            }
+            
             addConsoleLog('已停止执行', 'info');
         }
 
@@ -623,7 +645,10 @@
                 window.resetFreeCamera();
             }
             
-            addConsoleLog('正在归位...', 'info');
+            // 归位完成后禁用按钮
+            document.getElementById('homeBtn').disabled = true;
+            
+            addConsoleLog('归位完成', 'success');
         }
 
 

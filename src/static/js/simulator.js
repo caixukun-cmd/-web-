@@ -53,6 +53,14 @@ let lastRotationUpdateTime = performance.now();
 let lastUIUpdateTime = 0;
 const UI_UPDATE_INTERVAL = 100; // 每100ms更新一次UI
 
+// ===== 路径记录系统 =====
+let pathLine = null;              // 路径线对象
+let pathPoints = [];              // 路径点数组
+let lastPathPoint = null;         // 上一个记录的路径点
+let isRecordingPath = false;      // 路径记录状态（运行时为true，停止时为false）
+const PATH_RECORD_INTERVAL = 0.3; // 路径记录间隔（单位：世界坐标距离）
+const PATH_Y_OFFSET = 0.05;       // 路径线离地高度
+
 // ===== 性能优化相关变量 =====
 let needsRender = true; // 按需渲染标志
 let lastCameraPosition = new THREE.Vector3();
@@ -167,6 +175,9 @@ export function initScene(container) {
     // 创建地面
     createGround();
 
+    // 初始化路径系统
+    initPathSystem();
+
     // 加载小车模型
     loadCarModel();
 
@@ -223,6 +234,107 @@ function createGround() {
     }
     
     console.log('✓ 初始地面 Chunk 加载完成（3x3网格）');
+}
+
+// ===== 4. 路径记录系统 =====
+function initPathSystem() {
+    // 创建路径线的材质
+    const pathMaterial = new THREE.LineBasicMaterial({
+        color: 0xffffff,  // 白色
+        linewidth: 2
+    });
+    
+    // 创建初始的空几何体
+    const pathGeometry = new THREE.BufferGeometry();
+    
+    // 创建路径线对象
+    pathLine = new THREE.Line(pathGeometry, pathMaterial);
+    pathLine.name = 'CarPathLine';
+    pathLine.frustumCulled = false;  // 禁用视锥剔除，确保路径始终可见
+    
+    scene.add(pathLine);
+    
+    // 初始化路径点数组
+    pathPoints = [];
+    lastPathPoint = null;
+    
+    console.log('✓ 路径记录系统初始化完成');
+}
+
+// 记录路径点
+function recordPathPoint(x, z) {
+    // 如果路径记录器未开启，不记录
+    if (!isRecordingPath) {
+        return;
+    }
+    
+    // 检查与上一个点的距离，避免记录过于密集的点
+    if (lastPathPoint) {
+        const dx = x - lastPathPoint.x;
+        const dz = z - lastPathPoint.z;
+        const distance = Math.sqrt(dx * dx + dz * dz);
+        
+        if (distance < PATH_RECORD_INTERVAL) {
+            return; // 距离太近，不记录
+        }
+    }
+    
+    // 记录新的路径点
+    const newPoint = new THREE.Vector3(x, PATH_Y_OFFSET, z);
+    pathPoints.push(newPoint);
+    lastPathPoint = { x, z };
+    
+    // 更新路径线几何体
+    updatePathGeometry();
+}
+
+// 更新路径线几何体
+function updatePathGeometry() {
+    if (!pathLine || pathPoints.length < 2) return;
+    
+    // 创建新的几何体
+    const newGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+    
+    // 释放旧的几何体
+    if (pathLine.geometry) {
+        pathLine.geometry.dispose();
+    }
+    
+    // 设置新的几何体
+    pathLine.geometry = newGeometry;
+    
+    // 标记需要渲染
+    needsRender = true;
+}
+
+// 清除路径
+export function clearPath() {
+    // 清空路径点数组
+    pathPoints = [];
+    lastPathPoint = null;
+    
+    // 重置路径线几何体
+    if (pathLine && pathLine.geometry) {
+        pathLine.geometry.dispose();
+        pathLine.geometry = new THREE.BufferGeometry();
+    }
+    
+    // 标记需要渲染
+    needsRender = true;
+    
+    console.log('✓ 路径轨迹已清除');
+}
+
+// 开始记录路径
+export function startPathRecording() {
+    isRecordingPath = true;
+    console.log('✓ 路径记录器已开启');
+}
+
+// 停止记录路径
+export function stopPathRecording() {
+    isRecordingPath = false;
+    console.log('✓ 路径记录器已关闭');
 }
 
 // ===== 5. 加载小车模型 =====
@@ -559,6 +671,9 @@ function updateCarPositionSmooth() {
     carModel.position.z = carCurrentPosition.y;
     carModel.rotation.y = carCurrentPosition.rotation * Math.PI / 180; // 转为弧度
 
+    // 记录路径点（小车移动时）
+    recordPathPoint(carCurrentPosition.x, carCurrentPosition.y);
+
     // 更新前方机位：放在车头稍微偏上，并看向车前方（优化：减少向量创建）
     if (followCamera && cameraMode === 'car_front') {
         // 复用向量对象，避免频繁创建
@@ -869,6 +984,9 @@ export function resetFreeCamera() {
     // 更新位置记录（用于按需渲染）
     lastCameraPosition.copy(camera.position);
     lastCameraRotation.copy(camera.rotation);
+    
+    // 清除路径轨迹
+    clearPath();
     
     // 标记需要渲染
     needsRender = true;
