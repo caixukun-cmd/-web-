@@ -17,6 +17,8 @@ let isConnected = false;
 let followCamera = null;       // 绑定在小车前方的机位
 let activeCamera = null;       // 当前用于渲染的相机
 let cameraMode = 'orbit';      // 'orbit' | 'car_front'
+let initialCameraPosition = new THREE.Vector3(15, 12, 15);  // 初始相机位置
+let initialCameraTarget = new THREE.Vector3(0, 0, 0);      // 初始相机目标点
 
 // 自由视角键盘控制
 const freeCamKeyState = {
@@ -24,10 +26,6 @@ const freeCamKeyState = {
     ArrowDown: false,
     ArrowLeft: false,
     ArrowRight: false,
-    KeyW: false,
-    KeyS: false,
-    KeyA: false,
-    KeyD: false,
 };
 let keyDownHandler = null;
 let keyUpHandler = null;
@@ -40,6 +38,20 @@ let carState = {
     speed: 0,
     isMoving: false
 };
+
+// 小车插值目标（用于平滑移动）
+let carTargetPosition = { x: 0, y: 0, rotation: 0 };
+let carCurrentPosition = { x: 0, y: 0, rotation: 0 };
+
+// 旋转插值配置
+const ROTATION_LERP_FACTOR = 0.2;       // 旋转插值系数（用于小角度平滑）
+const ROTATION_MAX_SPEED = 360;          // 最大旋转速度（度/秒），提升到360度/秒让转向更流畅
+const ROTATION_MIN_SPEED = 90;          // 最小旋转速度（度/秒），确保即使小角度也有动画
+let lastRotationUpdateTime = performance.now();
+
+// UI更新节流（避免频繁DOM操作）
+let lastUIUpdateTime = 0;
+const UI_UPDATE_INTERVAL = 100; // 每100ms更新一次UI
 
 // ===== 性能优化相关变量 =====
 let needsRender = true; // 按需渲染标志
@@ -106,8 +118,8 @@ export function initScene(container) {
     // 创建相机
     const aspect = container.clientWidth / container.clientHeight;
     camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
-    camera.position.set(15, 12, 15);
-    camera.lookAt(0, 0, 0);
+    camera.position.copy(initialCameraPosition);
+    camera.lookAt(initialCameraTarget);
 
     // 绑定默认渲染相机为轨道相机
     activeCamera = camera;
@@ -147,6 +159,7 @@ export function initScene(container) {
     controls.maxPolarAngle = Math.PI / 2; // 限制不能看到地面下方
     controls.minDistance = 5;
     controls.maxDistance = 50;
+    controls.target.copy(initialCameraTarget); // 设置初始目标点
 
     // 添加光源
     addLights();
@@ -270,6 +283,14 @@ function loadCarModel() {
             carModel.scale.set(1, 1, 1);
             carModel.position.set(0, 0.5, 0);
             carModel.rotation.y = Math.PI / 2;     // 如果模型默认朝 +X（右侧朝前），旋转 90° 让正面朝 +Z
+            
+            // 初始化插值位置（避免从0开始插值）
+            carCurrentPosition.x = 0;
+            carCurrentPosition.y = 0;
+            carCurrentPosition.rotation = 0;
+            carTargetPosition.x = 0;
+            carTargetPosition.y = 0;
+            carTargetPosition.rotation = 0;
             // carModel.rotation.y = -Math.PI / 2;  // 如果默认朝 -X（左侧朝前）
             // carModel.rotation.y = Math.PI;       // 如果默认朝 -Z（背对前方）
             // carModel.rotation.y = 0;             //
@@ -339,7 +360,15 @@ function createFallbackCar() {
 
     carModel = carGroup;
     scene.add(carModel);
-
+    
+    // 初始化插值位置（避免从0开始插值）
+    carCurrentPosition.x = 0;
+    carCurrentPosition.y = 0;
+    carCurrentPosition.rotation = 0;
+    carTargetPosition.x = 0;
+    carTargetPosition.y = 0;
+    carTargetPosition.rotation = 0;
+    
     // 移除加载提示
     const loading = document.querySelector('.loading');
     if (loading) {
@@ -395,15 +424,22 @@ export function connectWebSocket(url, callbacks = {}) {
 // ===== 8. 处理 WebSocket 消息 =====
 function handleWebSocketMessage(data, callbacks) {
     const { type } = data;
-    console.log('[DEBUG] Received WebSocket message:', data); // 保持调试
+    // 移除频繁的DEBUG日志以提升性能
+    // console.log('[DEBUG] Received WebSocket message:', data);
 
     switch (type) {
         case 'position':
             updateCarPosition(data.x, data.y, data.rotation);
-            // 更新 UI
-            if (data.x !== undefined && data.y !== undefined) {
-                document.getElementById('posX').textContent = data.x.toFixed(2);
-                document.getElementById('posY').textContent = data.y.toFixed(2);
+            // UI更新节流（避免频繁DOM操作影响性能）
+            const now = performance.now();
+            if (now - lastUIUpdateTime >= UI_UPDATE_INTERVAL) {
+                if (data.x !== undefined && data.y !== undefined) {
+                    const posXEl = document.getElementById('posX');
+                    const posYEl = document.getElementById('posY');
+                    if (posXEl) posXEl.textContent = data.x.toFixed(2);
+                    if (posYEl) posYEl.textContent = data.y.toFixed(2);
+                }
+                lastUIUpdateTime = now;
             }
             break;
 
@@ -415,12 +451,25 @@ function handleWebSocketMessage(data, callbacks) {
             if (data.speed === 0 && !data.isMoving) {
                 // 强制本地模型静止，防止残留动画
                 if (carModel) {
-                    carModel.position.x = carState.position.x || 0;
-                    carModel.position.z = carState.position.y || 0;
-                    // 如果有任何 Tween/动画，杀掉
-                    // TweenMax.killTweensOf(carModel); // 如果用了 GSAP
+                    // 直接同步到目标位置，跳过插值
+                    carCurrentPosition.x = carState.position.x || 0;
+                    carCurrentPosition.y = carState.position.y || 0;
+                    carCurrentPosition.rotation = carState.rotation || 0;
+                    carTargetPosition.x = carState.position.x || 0;
+                    carTargetPosition.y = carState.position.y || 0;
+                    carTargetPosition.rotation = carState.rotation || 0;
+                    
+                    // 确保角度在 0-360 范围内
+                    while (carCurrentPosition.rotation < 0) carCurrentPosition.rotation += 360;
+                    while (carCurrentPosition.rotation >= 360) carCurrentPosition.rotation -= 360;
+                    
+                    carModel.position.x = carCurrentPosition.x;
+                    carModel.position.z = carCurrentPosition.y;
+                    carModel.rotation.y = carCurrentPosition.rotation * Math.PI / 180;
+                    
+                    // 重置旋转更新时间
+                    lastRotationUpdateTime = performance.now();
                 }
-                console.log('[DEBUG] 前端强制静止模型');
             }
             break;
 
@@ -442,46 +491,138 @@ function handleWebSocketMessage(data, callbacks) {
     }
 }
 
-// ===== 9. 更新小车位置 =====
+// ===== 9. 更新小车位置（优化：使用插值平滑移动） =====
 function updateCarPosition(x, y, rotation) {
-    console.log('[DEBUG] updateCarPosition called with:', x, y, rotation); // 调试信息
     if (!carModel) {
-        console.log('[DEBUG] carModel is null, skipping position update'); // 调试信息
         return;
     }
+    
+    // 更新目标位置（用于插值）
+    carTargetPosition.x = x;
+    carTargetPosition.y = y;
+    
+    // 处理旋转角度（确保在0-360范围内）
+    let normalizedRotation = rotation;
+    while (normalizedRotation < 0) normalizedRotation += 360;
+    while (normalizedRotation >= 360) normalizedRotation -= 360;
+    
+    // 如果目标角度变化很大，可能是瞬间转向，需要确保插值能正常工作
+    const oldTargetRot = carTargetPosition.rotation;
+    carTargetPosition.rotation = normalizedRotation;
+    
+    // 如果当前角度和目标角度差距很大，确保当前角度也正确归一化
+    while (carCurrentPosition.rotation < 0) carCurrentPosition.rotation += 360;
+    while (carCurrentPosition.rotation >= 360) carCurrentPosition.rotation -= 360;
+    
     // 更新内部状态
     carState.position.x = x;
     carState.position.y = y;
     carState.rotation = rotation;
+}
 
-    console.log('[DEBUG] Updated internal state, now updating Three.js model'); // 调试信息
-
+// ===== 9.1. 平滑插值更新小车位置（在动画循环中调用） =====
+function updateCarPositionSmooth() {
+    if (!carModel) return;
+    
+    // 位置插值系数（15% 每帧，平衡响应速度和平滑度）
+    const positionLerpFactor = 0.15;
+    
+    // 位置插值
+    carCurrentPosition.x += (carTargetPosition.x - carCurrentPosition.x) * positionLerpFactor;
+    carCurrentPosition.y += (carTargetPosition.y - carCurrentPosition.y) * positionLerpFactor;
+    
+    // 旋转插值（使用独立系数和速度限制，让转向更平滑）
+    const currentTime = performance.now();
+    let deltaTime = (currentTime - lastRotationUpdateTime) / 1000; // 转换为秒
+    
+    // 防止 deltaTime 为 0 或异常值
+    if (deltaTime <= 0 || deltaTime > 0.1) {
+        deltaTime = 0.016; // 默认约 60fps 的帧时间
+    }
+    
+    lastRotationUpdateTime = currentTime;
+    
+    // 计算旋转差值（处理角度环绕）
+    let rotDiff = carTargetPosition.rotation - carCurrentPosition.rotation;
+    // 处理角度环绕（-180到180）
+    if (rotDiff > 180) rotDiff -= 360;
+    if (rotDiff < -180) rotDiff += 360;
+    
+    // 如果已经到达目标（差值很小），直接同步
+    if (Math.abs(rotDiff) < 0.01) {
+        carCurrentPosition.rotation = carTargetPosition.rotation;
+    } else {
+        // 根据角度差值动态调整旋转速度
+        let targetRotSpeed;
+        const absRotDiff = Math.abs(rotDiff);
+        
+        if (absRotDiff > 45) {
+            // 大角度（>45度）：使用最大速度，快速转向
+            targetRotSpeed = ROTATION_MAX_SPEED;
+        } else if (absRotDiff < 2) {
+            // 很小角度（<2度）：使用插值系数平滑过渡，避免抖动
+            const lerpIncrement = rotDiff * ROTATION_LERP_FACTOR;
+            carCurrentPosition.rotation += lerpIncrement;
+            // 确保角度在 0-360 范围内
+            while (carCurrentPosition.rotation < 0) carCurrentPosition.rotation += 360;
+            while (carCurrentPosition.rotation >= 360) carCurrentPosition.rotation -= 360;
+            // 直接返回，不继续执行下面的速度限制逻辑
+            carModel.position.x = carCurrentPosition.x;
+            carModel.position.z = carCurrentPosition.y;
+            carModel.rotation.y = carCurrentPosition.rotation * Math.PI / 180;
+            needsRender = true;
+            return;
+        } else {
+            // 中等角度（2-45度）：在最小和最大速度之间线性插值
+            const t = (absRotDiff - 2) / 43; // 0到1的插值系数
+            targetRotSpeed = ROTATION_MIN_SPEED + (ROTATION_MAX_SPEED - ROTATION_MIN_SPEED) * t;
+        }
+        
+        // 计算旋转增量（保持方向）
+        const rotIncrement = Math.sign(rotDiff) * targetRotSpeed * deltaTime;
+        
+        // 如果插值增量超过目标差值，直接到达目标（避免过冲）
+        if (Math.abs(rotIncrement) >= Math.abs(rotDiff)) {
+            carCurrentPosition.rotation = carTargetPosition.rotation;
+        } else {
+            // 更新当前旋转角度
+            carCurrentPosition.rotation += rotIncrement;
+        }
+    }
+    
+    // 确保角度在 0-360 范围内
+    while (carCurrentPosition.rotation < 0) carCurrentPosition.rotation += 360;
+    while (carCurrentPosition.rotation >= 360) carCurrentPosition.rotation -= 360;
+    
     // Three.js 坐标系转换：
     // 后端: x=左右, y=前后
     // Three.js: x=左右, z=前后, y=上下
-    carModel.position.x = x;
-    carModel.position.z = y;
-    carModel.rotation.y = rotation * Math.PI / 180; // 转为弧度
+    carModel.position.x = carCurrentPosition.x;
+    carModel.position.z = carCurrentPosition.y;
+    carModel.rotation.y = carCurrentPosition.rotation * Math.PI / 180; // 转为弧度
 
-    // 更新前方机位：放在车头稍微偏上，并看向车前方
-    if (followCamera) {
-        const cameraOffset = new THREE.Vector3(0, 0.7, 1.2);  // 车头前上方
-        const lookAtOffset = new THREE.Vector3(0, 0.4, 4.0);  // 车前方更远一点
-
-        const worldCameraPos = cameraOffset.clone();
-        const worldLookAtPos = lookAtOffset.clone();
-
-        carModel.localToWorld(worldCameraPos);
-        carModel.localToWorld(worldLookAtPos);
-
-        followCamera.position.copy(worldCameraPos);
-        followCamera.lookAt(worldLookAtPos);
+    // 更新前方机位：放在车头稍微偏上，并看向车前方（优化：减少向量创建）
+    if (followCamera && cameraMode === 'car_front') {
+        // 复用向量对象，避免频繁创建
+        if (!followCamera._cameraOffset) {
+            followCamera._cameraOffset = new THREE.Vector3(0, 0.7, 1.2);
+            followCamera._lookAtOffset = new THREE.Vector3(0, 0.4, 4.0);
+            followCamera._worldCameraPos = new THREE.Vector3();
+            followCamera._worldLookAtPos = new THREE.Vector3();
+        }
+        
+        followCamera._worldCameraPos.copy(followCamera._cameraOffset);
+        followCamera._worldLookAtPos.copy(followCamera._lookAtOffset);
+        
+        carModel.localToWorld(followCamera._worldCameraPos);
+        carModel.localToWorld(followCamera._worldLookAtPos);
+        
+        followCamera.position.copy(followCamera._worldCameraPos);
+        followCamera.lookAt(followCamera._worldLookAtPos);
     }
 
     // 标记需要渲染（按需渲染）
     needsRender = true;
-
-    console.log('[DEBUG] Three.js model updated, x:', carModel.position.x, 'z:', carModel.position.z, 'rotation.y:', carModel.rotation.y); // 调试信息
 }
 
 // ===== 10. 发送消息到后端 =====
@@ -506,6 +647,9 @@ export function sendMessage(message) {
 // ===== 11. 渲染循环（按需渲染优化） =====
 function animate() {
     animationFrameId = requestAnimationFrame(animate);
+
+    // 平滑更新小车位置（插值）
+    updateCarPositionSmooth();
 
     // 更新控制器
     let cameraChanged = false;
@@ -533,16 +677,16 @@ function animate() {
 
             const move = new THREE.Vector3();
 
-            if (freeCamKeyState.ArrowUp || freeCamKeyState.KeyW) {
+            if (freeCamKeyState.ArrowUp) {
                 move.add(forward);
             }
-            if (freeCamKeyState.ArrowDown || freeCamKeyState.KeyS) {
+            if (freeCamKeyState.ArrowDown) {
                 move.sub(forward);
             }
-            if (freeCamKeyState.ArrowRight || freeCamKeyState.KeyD) {
+            if (freeCamKeyState.ArrowRight) {
                 move.add(right);
             }
-            if (freeCamKeyState.ArrowLeft || freeCamKeyState.KeyA) {
+            if (freeCamKeyState.ArrowLeft) {
                 move.sub(right);
             }
 
@@ -743,6 +887,35 @@ export function getCarState() {
 
 export function isWebSocketConnected() {
     return isConnected;
+}
+
+// ===== 18. 重置自由视角相机到初始位置 =====
+export function resetFreeCamera() {
+    if (!camera || !controls) {
+        console.warn('相机或控制器未初始化，无法重置');
+        return;
+    }
+
+    // 重置相机位置
+    camera.position.copy(initialCameraPosition);
+    
+    // 重置 OrbitControls 的目标点
+    controls.target.copy(initialCameraTarget);
+    
+    // 更新控制器（确保阻尼等效果正确应用）
+    controls.update();
+    
+    // 更新相机朝向
+    camera.lookAt(initialCameraTarget);
+    
+    // 更新位置记录（用于按需渲染）
+    lastCameraPosition.copy(camera.position);
+    lastCameraRotation.copy(camera.rotation);
+    
+    // 标记需要渲染
+    needsRender = true;
+    
+    console.log('✓ 自由视角相机已重置到初始位置');
 }
 
 // ---- Chunk 配置 -------------------------------------------------------

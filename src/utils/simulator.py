@@ -59,12 +59,12 @@ class VirtualCar:
         self.is_moving = abs(self.current_speed) > 0.01
 
     def turn_right(self, angle: float):
-        """左转（瞬时）"""
+        """右转（瞬时）"""
         self.rotation = (self.rotation + angle) % 360
         print(f"右转 {angle}° → 当前朝向: {self.rotation:.1f}°")
 
     def turn_left(self, angle: float):
-        """右转（瞬时）"""
+        """左转（瞬时）"""
         self.rotation = (self.rotation - angle) % 360
         print(f"左转 {angle}° → 当前朝向: {self.rotation:.1f}°")
 

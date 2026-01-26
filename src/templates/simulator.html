@@ -350,7 +350,8 @@
             connectWebSocket, 
             sendMessage, 
             isWebSocketConnected,
-            setCameraMode
+            setCameraMode,
+            resetFreeCamera
         } from '/js/simulator.js';
         
         // 将模块函数暴露到全局作用域
@@ -359,6 +360,7 @@
         window.sendMessage = sendMessage;
         window.isWebSocketConnected = isWebSocketConnected;
         window.setCameraMode = setCameraMode;
+        window.resetFreeCamera = resetFreeCamera;
     </script>
     <script>
         let editor;
@@ -613,7 +615,14 @@
                 return;
             }
 
+            // 发送归位消息到后端（小车归位）
             sendMessage({ type: 'home' });
+            
+            // 同时重置自由视角相机到初始位置
+            if (window.resetFreeCamera) {
+                window.resetFreeCamera();
+            }
+            
             addConsoleLog('正在归位...', 'info');
         }
 
