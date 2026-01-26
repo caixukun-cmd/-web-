@@ -152,8 +152,8 @@ export function initScene(container) {
 
     // 降低阴影质量以提升性能
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.BasicShadowMap; // 从 PCFSoftShadowMap 改为 BasicShadowMap，降低 GPU 压力
-    renderer.shadowMap.autoUpdate = false; // 禁用自动更新，手动控制阴影更新
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 使用软阴影，效果更好
+    renderer.shadowMap.autoUpdate = true; // 启用自动更新，确保新生成的地形块有正确的阴影
 
     container.appendChild(renderer.domElement);
 
@@ -217,7 +217,7 @@ function addLights() {
     directionalLight.shadow.camera.top = 20;
     directionalLight.shadow.camera.bottom = -20;
     directionalLight.shadow.bias = -0.0001; // 减少阴影瑕疵
-    directionalLight.shadow.radius = 2; // 阴影模糊半径（BasicShadowMap 下影响较小）
+    directionalLight.shadow.radius = 1; // 阴影模糊半径
 
     scene.add(directionalLight);
 }
@@ -1014,7 +1014,8 @@ function generateChunk(cx, cz) {
     })
   )
   floor.rotation.x = -Math.PI / 2
-  floor.receiveShadow = true
+  floor.receiveShadow = true  // 接收阴影
+  floor.castShadow = false    // 地面一般不投射阴影到其他物体
   group.add(floor)
 
   // 示例障碍物（不影响小车逻辑，仅视觉）
@@ -1030,7 +1031,8 @@ function generateChunk(cx, cz) {
       0.5,
       (Math.random() - 0.5) * CHUNK_CONFIG.SIZE * 0.7
     )
-    box.castShadow = true
+    box.castShadow = true    // 障碍物可以投射阴影
+    box.receiveShadow = true // 障碍物也可以接收阴影
     group.add(box)
   }
 
