@@ -167,9 +167,6 @@ export function initScene(container) {
     // 创建地面
     createGround();
 
-    // 创建黑线路径
-    drawLinePath();
-
     // 加载小车模型
     loadCarModel();
 
@@ -216,55 +213,16 @@ function addLights() {
 
 // ===== 3. 创建地面（40x40 网格，支持 Chunk 扩展） =====
 function createGround() {
-    // 地面网格（降低细分以提升性能）
-    const gridHelper = new THREE.GridHelper(40, 20, 0x888888, 0xcccccc); // 从 40 格降至 20 格
-    scene.add(gridHelper);
-
-    // 地面平面（接收阴影）- 使用 Chunk 系统管理
-    const groundGeometry = new THREE.PlaneGeometry(40, 40);
-    const groundMaterial = new THREE.MeshStandardMaterial({
-        color: 0x228b22,
-        roughness: 0.8,
-        metalness: 0.2
-    });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    ground.name = 'Ground';
-
-    // 将地面添加到 Chunk 系统（当前为单个 Chunk，未来可扩展为多个）
-    const chunkCoord = ChunkManager.getChunkCoord(0, 0);
-    ChunkManager.addChunk(chunkCoord.x, chunkCoord.z, ground);
-
-    scene.add(ground);
-}
-
-// ===== 4. 创建黑线路径（循线轨道，优化 draw call） =====
-function drawLinePath() {
-    // 合并所有路径点到一个几何体，减少 draw call
-    const allPoints = [];
-
-    // 直线路径，从 (0, 0, -15) 到 (0, 0, 15)
-    for (let z = -15; z <= 15; z += 0.5) {
-        allPoints.push(new THREE.Vector3(0, 0.02, z));
+    // 删除原有的静态地面和网格，改为由 Chunk 系统管理
+    // 初始加载原点附近的几个 chunk（-1到1范围，即3x3网格）
+    for (let cx = -1; cx <= 1; cx++) {
+        for (let cz = -1; cz <= 1; cz++) {
+            const chunk = generateChunk(cx, cz);
+            ChunkManager.addChunk(cx, cz, chunk);
+        }
     }
-
-    // 转弯路径
-    for (let x = 0; x <= 10; x += 0.5) {
-        allPoints.push(new THREE.Vector3(x, 0.02, 15));
-    }
-
-    // 使用单个几何体和材质，减少 draw call
-    const lineGeometry = new THREE.BufferGeometry().setFromPoints(allPoints);
-    const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0x000000,
-        linewidth: 3
-    });
-
-    // 如果路径是连续的，使用 Line；如果需要分段，使用 LineSegments
-    const line = new THREE.Line(lineGeometry, lineMaterial);
-    line.name = 'PathLine';
-    scene.add(line);
+    
+    console.log('✓ 初始地面 Chunk 加载完成（3x3网格）');
 }
 
 // ===== 5. 加载小车模型 =====

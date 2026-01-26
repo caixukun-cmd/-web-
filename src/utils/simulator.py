@@ -32,7 +32,7 @@ class VirtualCar:
         self.current_turn_speed: float = 0.0    # 当前转向速度（度/秒）
         self.turn_start_time: float = 0.0
         self.turn_duration: float = 0.0
-        self.max_turn_speed: float = 90.0       # 默认转向速度：90度/秒
+        self.max_turn_speed: float = 180.0       # 默认转向速度：180度/秒
 
         self.last_update: float = time.time()
         self.max_speed: float = 200.0
