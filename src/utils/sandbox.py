@@ -60,9 +60,10 @@ class CodeValidator:
 class SafeCarAPI:
     """安全的小车API - 提供给用户代码使用"""
 
-    def __init__(self, car, log_callback: Callable):
+    def __init__(self, car, log_callback: Callable, send_callback: Callable = None):
         self.car = car
         self.log = log_callback
+        self.send_callback = send_callback  # 新增：WebSocket 发送回调
         self._stopped = False  # 新增：停止标志
 
     def _check_stopped(self):
@@ -117,6 +118,82 @@ class SafeCarAPI:
                 break
             await asyncio.sleep(0.05)  # 实际异步等待
 
+    # ===== 循线系统 API（后端实现） =====
+
+    async def load_demo_track(self):
+        """加载演示轨道"""
+        if self._check_stopped():
+            return
+        self.car.load_demo_track()
+        self.log("已加载演示轨道")
+        # 通知前端更新可视化（可选）
+        if self.send_callback:
+            await self.send_callback({'type': 'track_load_demo'})
+
+    async def load_track_url(self, url: str):
+        """从 URL 加载轨道（暂不支持，使用 load_demo_track 代替）"""
+        if self._check_stopped():
+            return
+        self.log(f"暂不支持从 URL 加载轨道，请使用 load_demo_track()")
+
+    async def load_track_data(self, track_data: dict):
+        """加载轨道数据"""
+        if self._check_stopped():
+            return
+        self.car.load_track_data(track_data)
+        self.log("已加载轨道数据")
+
+    async def init_line_following(self):
+        """初始化循线系统（后端不需要特别初始化）"""
+        if self._check_stopped():
+            return
+        self.log("循线系统已就绪")
+
+    async def enable_line_following(self, kp: float = 1.0, ki: float = 0.0, kd: float = 0.1, steering_scale: float = 45.0):
+        """
+        启用循线功能
+        
+        Args:
+            kp: 比例系数
+            ki: 积分系数
+            kd: 微分系数
+            steering_scale: 转向缩放系数（度/秒）
+        """
+        if self._check_stopped():
+            return
+        success = self.car.enable_line_following(kp, ki, kd, steering_scale)
+        if success:
+            self.log(f"已启用循线功能 (Kp={kp}, Ki={ki}, Kd={kd}, Scale={steering_scale})")
+            # 通知前端启用可视化（可选）
+            if self.send_callback:
+                await self.send_callback({'type': 'line_enable'})
+        else:
+            self.log("启用循线失败，请先加载轨道")
+
+    async def disable_line_following(self):
+        """禁用循线功能"""
+        self.car.disable_line_following()
+        self.log("已禁用循线功能")
+        # 通知前端禁用可视化（可选）
+        if self.send_callback:
+            await self.send_callback({'type': 'line_disable'})
+
+    async def set_line_pid(self, kp: float, ki: float, kd: float):
+        """设置 PID 参数"""
+        if self._check_stopped():
+            return
+        self.car.pid_kp = kp
+        self.car.pid_ki = ki
+        self.car.pid_kd = kd
+        self.log(f"已设置 PID 参数: Kp={kp}, Ki={ki}, Kd={kd}")
+
+    async def set_steering_scale(self, scale: float):
+        """设置转向缩放系数"""
+        if self._check_stopped():
+            return
+        self.car.steering_scale = scale
+        self.log(f"已设置转向缩放: {scale}")
+
 
 class SafeTimeAPI:
     """安全的时间API"""
@@ -161,9 +238,13 @@ class CodeSandbox:
         safe_globals = {
             '__builtins__': {name: __builtins__[name] for name in CodeValidator.ALLOWED_BUILTINS},
             'print': log_print,
-            'car': SafeCarAPI(self.car, lambda msg: asyncio.create_task(
-                self.send_callback({'type': 'log', 'message': msg, 'level': 'info'})
-            )),
+            'car': SafeCarAPI(
+                self.car, 
+                lambda msg: asyncio.create_task(
+                    self.send_callback({'type': 'log', 'message': msg, 'level': 'info'})
+                ),
+                self.send_callback  # 传递 send_callback 用于循线系统
+            ),
             'time': SafeTimeAPI(self.simulator if hasattr(self, 'simulator') else None),
         }
 

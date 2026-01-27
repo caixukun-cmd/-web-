@@ -148,6 +148,11 @@ async def websocket_endpoint(websocket: WebSocket):
                     'level': 'success'
                 })
 
+                # 发送禁用循线消息（避免残留）
+                await websocket.send_json({
+                    'type': 'line_disable'
+                })
+
                 # 立即广播当前状态（让前端尽快静止）
                 state = simulator.get_state()
                 await websocket.send_json({
@@ -208,6 +213,11 @@ async def websocket_endpoint(websocket: WebSocket):
                     'type': 'log',
                     'message': '小车已归位到初始位置',
                     'level': 'success'
+                })
+
+                # 发送禁用循线消息（避免残留）
+                await websocket.send_json({
+                    'type': 'line_disable'
                 })
 
                 # 立即广播归位后的状态

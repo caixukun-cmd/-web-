@@ -284,6 +284,7 @@
                         <option value="basic">基本移动演示</option>
                         <option value="square">方形路径演示</option>
                         <option value="continuous">连续移动演示</option>
+                        <option value="line_follow">自动循线演示</option>
                     </select>
                     <button class="btn btn-run" id="runBtn" onclick="runCode()">▶ 运行</button>
                     <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 终止</button>
@@ -714,7 +715,7 @@
                            '\n' +
                            'directions = [\n' +
                            '    (80, 3, "前进3秒"), \n' +
-                           '    (-80, 3, "后退3秒"), \n' +
+                            '    (-80, 3, "后退3秒"), \n' +
                            '    (0, 0, "右转90度"), \n' +
                            '    (80, 2, "前进2秒"), \n' +
                            '    (0, 0, "左转45度"), \n' +
@@ -737,6 +738,46 @@
                            '    print(f"执行: {action}, 位置: {car.get_position()}")\n' +
                            '\n' +
                            'print("连续移动完成，最终位置:", car.get_position())';
+                    break;
+                case 'line_follow':
+                    code = '# 自动循线演示\n' +
+                        '# 本演示展示如何使用循线系统 API\n' +
+                        'print("=== 自动循线演示 ===")\n' +
+                        '\n' +
+                        '# 1. 加载演示轨道\n' +
+                        'print("步骤1: 加载演示轨道...")\n' +
+                        'await car.load_demo_track()\n' +
+                        'await time.sleep(1)  # 等待轨道加载\n' +
+                        '\n' +
+                        '# 2. 初始化循线系统\n' +
+                        'print("步骤2: 初始化循线系统...")\n' +
+                        'await car.init_line_following()\n' +
+                        'await time.sleep(0.5)\n' +
+                        '\n' +
+                        '# 3. 启用循线功能（设置 PID 参数）\n' +
+                        '# 参数说明: kp=比例系数, ki=积分系数, kd=微分系数, steering_scale=转向缩放\n' +
+                        'print("步骤3: 启用循线功能 (PID: Kp=1.0, Ki=0.0, Kd=0.1)...")\n' +
+                        'await car.enable_line_following(kp=1.0, ki=0.0, kd=0.1, steering_scale=45.0)\n' +
+                        'await time.sleep(0.5)\n' +
+                        '\n' +
+                        '# 4. 小车前进，循线系统会自动调整方向\n' +
+                        'print("步骤4: 小车开始循线行驶...")\n' +
+                        'print("提示: 循线系统会根据探头读数自动调整转向")\n' +
+                        'car.forward(50, 50.0)  # 以50速度前进10秒\n' +
+                        'await car.wait()\n' +
+                        '\n' +
+                        '# 5. 停止并禁用循线\n' +
+                        'print("步骤5: 禁用循线功能...")\n' +
+                        'await car.disable_line_following()\n' +
+                        'car.stop()\n' +
+                        '\n' +
+                        'print("循线演示完成，最终位置:", car.get_position())\n' +
+                        '\n' + "# ===== 循线 API 参考 =====\n# car.load_demo_track()         - 加载演示轨道\n# car.load_track_url(url)       - 从 URL 加载轨道\n" +
+                           '# car.init_line_following()     - 初始化循线系统\n' +
+                           '# car.enable_line_following(kp, ki, kd, scale) - 启用循线\n' +
+                           '# car.disable_line_following()  - 禁用循线\n' +
+                           '# car.set_line_pid(kp, ki, kd)  - 动态调整 PID\n' +
+                           '# car.set_steering_scale(scale) - 调整转向缩放';
                     break;
                 default:
                     code = defaultCode;
