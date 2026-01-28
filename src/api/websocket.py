@@ -15,6 +15,7 @@ sys.path.insert(0, parent_dir)
 
 from src.utils import CarSimulator
 from src.utils import CodeSandbox
+from src.utils.simulator import get_demo_track, get_demo_track_with_checksum
 
 router = APIRouter()
 
@@ -274,3 +275,9 @@ async def websocket_status():
         "active_connections": len(active_connections),
         "status": "running"
     }
+
+
+@router.get("/api/track/demo")
+async def get_demo_track_api():
+    """获取演示轨道数据（前端用于渲染，带校验信息）"""
+    return get_demo_track_with_checksum()

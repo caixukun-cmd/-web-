@@ -48,9 +48,13 @@ export function initLineFollower(config = {}) {
     // 初始化 PID 控制器
     initPID(config.pid || {});
     
-    // 可选：加载示例轨道
+    // 可选：加载示例轨道（异步从后端获取）
     if (lineFollowerConfig.autoLoadDemoTrack) {
-        loadDemoTrack();
+        loadDemoTrack().then(success => {
+            if (success) {
+                console.log('✓ 演示轨道自动加载成功');
+            }
+        });
     }
     
     lineFollowerInitialized = true;

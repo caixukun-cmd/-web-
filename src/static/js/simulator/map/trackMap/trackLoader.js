@@ -31,6 +31,7 @@
 let currentTrack = null;
 let trackWaypoints = [];       // 采样后的路径点数组 [{x, z}, ...]
 let trackWidth = 0.5;          // 默认轨道宽度
+let lastChecksum = null;       // 最后一次加载的校验信息
 
 // ===== 加载轨道 JSON =====
 export async function loadTrackFromURL(url) {
@@ -50,6 +51,18 @@ export async function loadTrackFromURL(url) {
 // ===== 直接加载轨道数据对象 =====
 export function loadTrackData(trackData) {
     try {
+        // 保存校验信息
+        if (trackData._checksum) {
+            lastChecksum = trackData._checksum;
+            console.log('=== 轨道数据校验信息 ===');
+            console.log(`  Hash: ${lastChecksum.hash}`);
+            console.log(`  段数: ${lastChecksum.segmentCount}`);
+            console.log(`  宽度: ${lastChecksum.trackWidth}`);
+            console.log(`  首段: ${JSON.stringify(lastChecksum.firstSegment)}`);
+            console.log(`  末段: ${JSON.stringify(lastChecksum.lastSegment)}`);
+            console.log('========================');
+        }
+        
         currentTrack = trackData;
         trackWidth = trackData.trackWidth || 0.5;
         
@@ -172,36 +185,27 @@ export function unloadTrack() {
     currentTrack = null;
     trackWaypoints = [];
     trackWidth = 0.5;
+    lastChecksum = null;
     console.log('✓ 轨道已卸载');
 }
 
-// ===== 创建示例轨道（用于测试） =====
-export function loadDemoTrack() {
-    const demoTrack = {
-        name: "示例循线轨道（平滑版）",
-        version: "1.1",
-        trackWidth: 0.3,
-        segments: [
-            { type: "line", start: [2, 12], end: [18, 12] },
-            // 右上：点(18,12)是 +z => 90°，点(20,10)是 +x => 0°（顺时针 90°）
-            { type: "arc", center: [18, 10], radius: 2, startAngle: 90, endAngle: 0, clockwise: true },
+// ===== 获取校验信息 =====
+export function getTrackChecksum() {
+    return lastChecksum;
+}
 
-            { type: "line", start: [20, 10], end: [20, 2] },
-
-            // 右下：点(20,2)是 +x => 0°，点(18,0)是 -z => -90°（顺时针 90°）
-            { type: "arc", center: [18, 2], radius: 2, startAngle: 0, endAngle: -90, clockwise: true },
-
-            { type: "line", start: [18, 0], end: [2, 0] },
-
-            // 左下：点(2,0)是 -z => -90°，点(0,2)是 -x => -180°（顺时针 90°）
-            { type: "arc", center: [2, 2], radius: 2, startAngle: -90, endAngle: -180, clockwise: true },
-
-            { type: "line", start: [0, 2], end: [0, 10] },
-
-            // 左上：点(0,10)是 -x => 180°，点(2,12)是 +z => 90°（顺时针 90°）
-            { type: "arc", center: [2, 10], radius: 2, startAngle: 180, endAngle: 90, clockwise: true },
-        ]
-    };
-    
-    return loadTrackData(demoTrack);
+// ===== 从后端加载演示轨道（唯一数据源） =====
+export async function loadDemoTrack() {
+    try {
+        const response = await fetch('/api/track/demo');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const trackData = await response.json();
+        console.log('✓ 从后端获取轨道数据成功');
+        return loadTrackData(trackData);
+    } catch (error) {
+        console.error('从后端加载轨道失败:', error);
+        return false;
+    }
 }
