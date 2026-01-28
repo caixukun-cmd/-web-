@@ -305,9 +305,9 @@
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <!-- 地图选择下拉框 -->
                     <div class="map-select" style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #ddd;">
-                        <span>地图:</span>
-                        <select id="mapSelector" onchange="selectMap(this.value)" title="选择循线地图">
-                            <option value="">请选择地图...</option>
+                        <span>循线地图选择:</span>
+                        <select id="mapSelector" onchange="selectMap(this.value)" title="选择循线轨道">
+                            <option value="">请选择轨道...</option>
                         </select>
                     </div>
                     <!-- 视角选择 -->
@@ -694,7 +694,7 @@
             if (!selector) return;
             
             // 清空现有选项（保留第一个提示选项）
-            selector.innerHTML = '<option value="">请选择地图...</option>';
+            selector.innerHTML = '<option value="">请选择轨道...</option>';
             
             // 添加地图选项
             maps.forEach(map => {
