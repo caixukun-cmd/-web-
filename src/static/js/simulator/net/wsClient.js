@@ -145,12 +145,25 @@ function handleWebSocketMessage(data, callbacks) {
             handleLineDisable(data, callbacks);
             break;
 
+        case 'track_clear':
+            handleTrackClear(data, callbacks);
+            break;
+
         case 'line_set_pid':
             handleLineSetPID(data, callbacks);
             break;
 
         case 'line_set_scale':
             handleLineSetScale(data, callbacks);
+            break;
+
+        // ===== 地图选择消息 =====
+        case 'maps_list':
+            handleMapsList(data, callbacks);
+            break;
+
+        case 'track_data':
+            handleTrackData(data, callbacks);
             break;
 
         default:
@@ -164,6 +177,14 @@ function handleWebSocketMessage(data, callbacks) {
 async function handleTrackLoadDemo(data, callbacks) {
     try {
         await loadLineFollowerModules();
+        
+        // 如果已经加载了轨道（用户通过下拉框选择），跳过加载默认轨道
+        if (trackLoaderModule.isTrackLoaded()) {
+            console.log('✓ 轨道已存在，跳过加载默认轨道');
+            if (callbacks.onLog) callbacks.onLog('轨道已存在，使用已选地图', 'info');
+            return;
+        }
+        
         await trackLoaderModule.loadDemoTrack();
         
         // 刷新轨道可视化
@@ -286,6 +307,27 @@ async function handleLineDisable(data, callbacks) {
     }
 }
 
+// 清除轨道
+async function handleTrackClear(data, callbacks) {
+    try {
+        await loadLineFollowerModules();
+        
+        // 清除轨道数据
+        trackLoaderModule.unloadTrack();
+        
+        // 刷新轨道可视化（清除显示）
+        if (sensorVisualizerModule) {
+            sensorVisualizerModule.refreshTrackLine();
+        }
+        
+        console.log('✓ 轨道已清除');
+        if (callbacks.onLog) callbacks.onLog('轨道已清除', 'info');
+    } catch (error) {
+        console.error('清除轨道失败:', error);
+        // 静默处理（可能模块未加载）
+    }
+}
+
 // 设置 PID 参数
 async function handleLineSetPID(data, callbacks) {
     try {
@@ -315,6 +357,49 @@ async function handleLineSetScale(data, callbacks) {
     } catch (error) {
         console.error('设置转向缩放失败:', error);
         if (callbacks.onError) callbacks.onError('设置转向缩放失败: ' + error.message);
+    }
+}
+
+// ===== 地图选择消息处理 =====
+
+// 处理地图列表响应
+function handleMapsList(data, callbacks) {
+    const maps = data.maps || [];
+    console.log(`✓ 收到地图列表: ${maps.length} 个地图`);
+    
+    // 触发回调，让 simulator.html 填充下拉框
+    if (callbacks.onMapsList) {
+        callbacks.onMapsList(maps);
+    }
+}
+
+// 处理轨道数据响应
+async function handleTrackData(data, callbacks) {
+    try {
+        await loadLineFollowerModules();
+        
+        const trackData = data.track;
+        if (!trackData) {
+            throw new Error('缺少轨道数据');
+        }
+        
+        // 加载到前端轨道系统
+        trackLoaderModule.loadTrackData(trackData);
+        
+        // 刷新轨道可视化
+        if (sensorVisualizerModule) {
+            sensorVisualizerModule.refreshTrackLine();
+        }
+        
+        console.log(`✓ 轨道数据已加载: ${trackData.name || trackData._mapId}`);
+        
+        // 触发回调
+        if (callbacks.onTrackLoaded) {
+            callbacks.onTrackLoaded(trackData);
+        }
+    } catch (error) {
+        console.error('加载轨道数据失败:', error);
+        if (callbacks.onError) callbacks.onError('加载轨道数据失败: ' + error.message);
     }
 }
 

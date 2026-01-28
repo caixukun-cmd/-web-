@@ -302,12 +302,22 @@
         <div class="right-panel">
             <div class="canvas-header">
                 <h3>🎮 3D仿真场景</h3>
-                <div class="camera-select">
-                    <span>视角:</span>
-                    <select id="cameraSelector" onchange="setCameraMode(this.value)">
-                        <option value="orbit">自由视角</option>
-                        <option value="car_front">车前视角</option>
-                    </select>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- 地图选择下拉框 -->
+                    <div class="map-select" style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #ddd;">
+                        <span>地图:</span>
+                        <select id="mapSelector" onchange="selectMap(this.value)" title="选择循线地图">
+                            <option value="">请选择地图...</option>
+                        </select>
+                    </div>
+                    <!-- 视角选择 -->
+                    <div class="camera-select">
+                        <span>视角:</span>
+                        <select id="cameraSelector" onchange="setCameraMode(this.value)">
+                            <option value="orbit">自由视角</option>
+                            <option value="car_front">车前视角</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div id="canvas-container">
@@ -380,6 +390,10 @@
         window.homeCar = homeCar;
         window.handleLogout = handleLogout;
         window.loadExampleCode = loadExampleCode;
+        window.selectMap = selectMap;  // 新增：地图选择函数
+
+        // 当前选中的地图ID
+        let currentMapId = null;
 
         // 默认示例代码
         const defaultCode = '# 基本移动演示\n' +
@@ -485,6 +499,14 @@
                 onComplete: (message) => {
                     addConsoleLog(message, 'success');
                     stopCode();
+                },
+                // 新增：地图列表回调
+                onMapsList: (maps) => {
+                    populateMapSelector(maps);
+                },
+                // 新增：轨道加载完成回调
+                onTrackLoaded: (trackData) => {
+                    addConsoleLog(`轨道已加载: ${trackData.name || trackData._mapId}`, 'success');
                 }
             });
         }
@@ -497,6 +519,8 @@
             if (connected) {
                 indicator.classList.add('active');
                 text.textContent = '已连接';
+                // 连接成功后请求地图列表
+                requestMapsList();
             } else {
                 indicator.classList.remove('active');
                 text.textContent = '未连接';
@@ -564,6 +588,7 @@
                         document.getElementById('runBtn').disabled = true;
                         document.getElementById('stopBtn').disabled = false;
                         document.getElementById('homeBtn').disabled = true;  // 运行时禁用归位按钮
+                        document.getElementById('mapSelector').disabled = true;  // 运行时锁定地图选择
                         
                         // 开启路径记录器
                         if (window.startPathRecording) {
@@ -593,6 +618,7 @@
             document.getElementById('runBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('homeBtn').disabled = true;  // 运行时禁用归位按钮
+            document.getElementById('mapSelector').disabled = true;  // 运行时锁定地图选择
 
             // 开启路径记录器
             if (window.startPathRecording) {
@@ -617,6 +643,7 @@
             document.getElementById('runBtn').disabled = false;
             document.getElementById('stopBtn').disabled = true;
             document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
+            document.getElementById('mapSelector').disabled = false;  // 停止时解锁地图选择
             
             // 关闭路径记录器
             if (window.stopPathRecording) {
@@ -650,6 +677,73 @@
             document.getElementById('homeBtn').disabled = true;
             
             addConsoleLog('归位完成', 'success');
+        }
+
+        // ===== 地图选择功能 =====
+        
+        // 请求地图列表
+        function requestMapsList() {
+            if (isWebSocketConnected()) {
+                sendMessage({ type: 'get_maps' });
+            }
+        }
+        
+        // 填充地图下拉框
+        function populateMapSelector(maps) {
+            const selector = document.getElementById('mapSelector');
+            if (!selector) return;
+            
+            // 清空现有选项（保留第一个提示选项）
+            selector.innerHTML = '<option value="">请选择地图...</option>';
+            
+            // 添加地图选项
+            maps.forEach(map => {
+                if (map.available) {
+                    const option = document.createElement('option');
+                    option.value = map.id;
+                    option.textContent = map.name;
+                    option.title = map.description;  // 鼠标悬停显示描述
+                    selector.appendChild(option);
+                }
+            });
+            
+            // 如果之前选中了地图，恢复选中状态
+            if (currentMapId) {
+                selector.value = currentMapId;
+            }
+            
+            addConsoleLog(`已加载 ${maps.filter(m => m.available).length} 个可用地图`, 'info');
+        }
+        
+        // 选择地图
+        function selectMap(mapId) {
+            if (!mapId) {
+                currentMapId = null;
+                return;
+            }
+            
+            // 运行时禁止更换地图
+            if (isRunning) {
+                addConsoleLog('代码执行中，无法更换地图', 'warning');
+                // 恢复下拉框到之前的选项
+                const selector = document.getElementById('mapSelector');
+                if (selector) selector.value = currentMapId || '';
+                return;
+            }
+            
+            if (!isWebSocketConnected()) {
+                addConsoleLog('WebSocket未连接，无法加载地图', 'error');
+                return;
+            }
+            
+            currentMapId = mapId;
+            addConsoleLog(`正在加载地图: ${mapId}...`, 'info');
+            
+            // 发送地图选择消息到后端
+            sendMessage({
+                type: 'select_map',
+                mapId: mapId
+            });
         }
 
 

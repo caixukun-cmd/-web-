@@ -231,9 +231,20 @@ export function disposeSensorVisualizer() {
     console.log('✓ 探头可视化已销毁');
 }
 
-// ===== 刷新轨道线（轨道加载后调用） =====
+// ===== 刷新轨道线（轨道加载/清除后调用） =====
 export function refreshTrackLine() {
-    if (visualizerEnabled) {
+    // 无论是否启用可视化，都需要处理轨道线的显示/清除
+    
+    // 清除旧的轨道线
+    if (trackLineObject) {
+        runtime.scene.remove(trackLineObject);
+        trackLineObject.geometry?.dispose();
+        trackLineObject = null;
+        console.log('✓ 已清除轨道可视化');
+    }
+    
+    // 如果轨道已加载且可视化已启用，重新创建轨道线
+    if (isTrackLoaded() && visualizerEnabled) {
         createTrackLine();
     }
 }

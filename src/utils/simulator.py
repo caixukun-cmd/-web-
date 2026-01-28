@@ -5,8 +5,13 @@
 import asyncio
 import math
 import time
+import json
+import os
 from enum import Enum
 from typing import Dict, Any, List, Optional
+
+# 地图文件目录（相对于项目结构）
+MAPS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'assets', 'maps')
 
 
 class LineFollowState(Enum):
@@ -84,33 +89,117 @@ def deduplicate_waypoints(waypoints: List[dict], min_distance: float) -> List[di
     return result
 
 
+# ===== 地图文件管理 =====
+
+# 地图 ID 到文件名的映射
+MAP_FILES = {
+    'easy': 'easymap.json',
+    'medium': 'mediummap.json',
+    'hard': 'hardmap.json',
+}
+
+# 地图元数据（用于前端下拉框显示）
+MAP_METADATA = {
+    'easy': {'name': '简单 - 基础循线', 'difficulty': 1, 'description': '适合初学者的基础轨道'},
+    'medium': {'name': '中等 - S曲线训练', 'difficulty': 2, 'description': '包含连续弯道的进阶轨道'},
+    'hard': {'name': '困难 - 急弯挑战', 'difficulty': 3, 'description': '小半径急弯，考验精准控制'},
+}
+
+
+def get_available_maps() -> List[dict]:
+    """获取可用地图列表（供前端下拉框使用）"""
+    maps = []
+    for map_id, metadata in MAP_METADATA.items():
+        file_path = os.path.join(MAPS_DIR, MAP_FILES.get(map_id, ''))
+        available = os.path.exists(file_path)
+        maps.append({
+            'id': map_id,
+            'name': metadata['name'],
+            'difficulty': metadata['difficulty'],
+            'description': metadata['description'],
+            'available': available
+        })
+    # 按难度排序
+    maps.sort(key=lambda x: x['difficulty'])
+    return maps
+
+
+def load_map_from_file(map_id: str) -> Optional[dict]:
+    """从 JSON 文件加载指定地图数据
+    
+    Args:
+        map_id: 地图标识符 ('easy', 'medium', 'hard')
+    
+    Returns:
+        轨道数据字典，加载失败返回 None
+    """
+    if map_id not in MAP_FILES:
+        print(f"[ERROR] 未知地图ID: {map_id}")
+        return None
+    
+    file_name = MAP_FILES[map_id]
+    file_path = os.path.join(MAPS_DIR, file_name)
+    
+    if not os.path.exists(file_path):
+        print(f"[ERROR] 地图文件不存在: {file_path}")
+        return None
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            track_data = json.load(f)
+        print(f"[OK] 成功加载地图: {map_id} ({file_name})")
+        return track_data
+    except json.JSONDecodeError as e:
+        print(f"[ERROR] 地图文件 JSON 解析失败: {file_path}, 错误: {e}")
+        return None
+    except Exception as e:
+        print(f"[ERROR] 加载地图文件失败: {file_path}, 错误: {e}")
+        return None
+
+
+def get_track_by_id(map_id: str) -> dict:
+    """获取指定ID的轨道数据（带校验信息）
+    
+    Args:
+        map_id: 地图标识符
+    
+    Returns:
+        轨道数据字典（包含校验信息），加载失败返回默认轨道
+    """
+    track_data = load_map_from_file(map_id)
+    
+    if track_data is None:
+        print(f"[WARN] 地图 {map_id} 加载失败，使用默认轨道")
+        track_data = get_demo_track()
+    
+    # 添加校验信息
+    checksum = compute_track_checksum(track_data)
+    return {
+        **track_data,
+        '_checksum': checksum,
+        '_mapId': map_id
+    }
+
+
 def get_demo_track() -> dict:
-    """获取演示轨道数据"""
+    """获取演示轨道数据（默认回退，优先从文件加载）"""
+    # 优先尝试从 easy 地图文件加载
+    track_data = load_map_from_file('easy')
+    if track_data:
+        return track_data
+    
+    # 回退到硬编码数据（保证兼容性）
     return {
         'name': '示例循线轨道',
         'trackWidth': 0.3,
         'segments': [
-            {'type': 'line', 'start': [0, 0], 'end': [0, 10]},
-
-            # 左上角
+            {'type': 'line', 'start': [0, 5], 'end': [0, 10]},
             {'type': 'arc', 'center': [3, 10], 'radius': 3, 'startAngle': 180, 'endAngle': 90, 'clockwise': True},
-
-            #    上边
             {'type': 'line', 'start': [3, 13], 'end': [10, 13]},
-
-            # 右上角（+z → +x）
             {'type': 'arc', 'center': [10, 10], 'radius': 3, 'startAngle': 90, 'endAngle': 0, 'clockwise': True},
-
-            # 右边
             {'type': 'line', 'start': [13, 10], 'end': [13, 3]},
-
-            # 右下角（+x → -z）
             {'type': 'arc', 'center': [10, 3], 'radius': 3, 'startAngle': 0, 'endAngle': -90, 'clockwise': True},
-
-            # 下边
             {'type': 'line', 'start': [10, 0], 'end': [3, 0]},
-
-            # 左下角（-z → -x）
             {'type': 'arc', 'center': [3, 3], 'radius': 3, 'startAngle': -90, 'endAngle': -180, 'clockwise': True}
         ]
     }
@@ -191,6 +280,7 @@ class VirtualCar:
         self.line_following_enabled: bool = False
         self.track_waypoints: List[dict] = []  # [{x, z}, ...]
         self.track_width: float = 0.3
+        self.current_map_id: Optional[str] = None  # 记忆用户选择的地图ID
         
         # 状态机
         self.lf_state: LineFollowState = LineFollowState.FOLLOW
@@ -319,7 +409,27 @@ class VirtualCar:
     # ===== 循线系统方法 =====
     
     def load_demo_track(self):
-        """加载演示轨道"""
+        """加载轨道
+        
+        加载顺序：
+        1. 如果轨道已存在，跳过
+        2. 如果用户之前选择了地图（current_map_id），加载该地图
+        3. 否则加载默认地图
+        """
+        # 如果已经加载了轨道，跳过
+        if self.track_waypoints and len(self.track_waypoints) > 0:
+            print(f"[OK] 轨道已存在 ({len(self.track_waypoints)} 个路径点)，跳过加载")
+            return
+        
+        # 如果用户之前选择了地图，加载该地图
+        if self.current_map_id:
+            track_data = load_map_from_file(self.current_map_id)
+            if track_data:
+                self.load_track_data(track_data)
+                print(f"[OK] 已加载用户选择的地图: {self.current_map_id} ({len(self.track_waypoints)} 个路径点)")
+                return
+        
+        # 否则加载默认地图
         demo_track = get_demo_track()
         self.load_track_data(demo_track)
         print(f"[OK] 演示轨道已加载: {len(self.track_waypoints)} 个路径点")

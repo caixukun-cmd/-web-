@@ -125,10 +125,20 @@ class SafeCarAPI:
         if self._check_stopped():
             return
         self.car.load_demo_track()
-        self.log("已加载演示轨道")
-        # 通知前端更新可视化（可选）
+        self.log("已加载轨道")
+        
+        # 通知前端更新可视化，发送实际的轨道数据
         if self.send_callback:
-            await self.send_callback({'type': 'track_load_demo'})
+            # 构建轨道数据发送给前端
+            track_data = {
+                'name': self.car.current_map_id or 'demo',
+                'trackWidth': self.car.track_width,
+                'waypoints': [[p['x'], p['z']] for p in self.car.track_waypoints]
+            }
+            await self.send_callback({
+                'type': 'track_data',
+                'track': track_data
+            })
 
     async def load_track_url(self, url: str):
         """从 URL 加载轨道（暂不支持，使用 load_demo_track 代替）"""

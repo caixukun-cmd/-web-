@@ -15,7 +15,7 @@ sys.path.insert(0, parent_dir)
 
 from src.utils import CarSimulator
 from src.utils import CodeSandbox
-from src.utils.simulator import get_demo_track, get_demo_track_with_checksum
+from src.utils.simulator import get_demo_track, get_demo_track_with_checksum, get_available_maps, get_track_by_id
 
 router = APIRouter()
 
@@ -174,6 +174,41 @@ async def websocket_endpoint(websocket: WebSocket):
                 simulator_task = asyncio.create_task(simulator.start())
                 await start_broadcast()
 
+            elif msg_type == 'get_maps':
+                # 前端请求获取可用地图列表
+                maps = get_available_maps()
+                await websocket.send_json({
+                    'type': 'maps_list',
+                    'maps': maps
+                })
+                print(f"[WS] 返回地图列表: {len(maps)} 个地图")
+
+            elif msg_type == 'select_map':
+                # 前端选择了某个地图
+                map_id = message.get('mapId', 'easy')
+                print(f"[WS] 收到地图选择: {map_id}")
+                
+                # 记忆用户选择的地图ID
+                simulator.car.current_map_id = map_id
+                
+                # 加载地图数据
+                track_data = get_track_by_id(map_id)
+                
+                # 同时加载到后端仿真器
+                simulator.car.load_track_data(track_data)
+                
+                # 返回地图数据给前端
+                await websocket.send_json({
+                    'type': 'track_data',
+                    'track': track_data
+                })
+                
+                await websocket.send_json({
+                    'type': 'log',
+                    'message': f'已加载地图: {track_data.get("name", map_id)}',
+                    'level': 'success'
+                })
+
             elif msg_type == 'home':
                 print(f"[WS] 收到 home 命令，开始归位...")
 
@@ -209,6 +244,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 simulator.car.target_speed = 0.0
                 simulator.car.motion_duration = 0.0
                 simulator.car.is_moving = False
+                
+                # 清除轨道数据
+                simulator.car.track_waypoints = []
+                simulator.car.track_width = 0.3
 
                 await websocket.send_json({
                     'type': 'log',
@@ -219,6 +258,11 @@ async def websocket_endpoint(websocket: WebSocket):
                 # 发送禁用循线消息（避免残留）
                 await websocket.send_json({
                     'type': 'line_disable'
+                })
+                
+                # 发送清除轨道消息给前端
+                await websocket.send_json({
+                    'type': 'track_clear'
                 })
 
                 # 立即广播归位后的状态
@@ -281,3 +325,17 @@ async def websocket_status():
 async def get_demo_track_api():
     """获取演示轨道数据（前端用于渲染，带校验信息）"""
     return get_demo_track_with_checksum()
+
+
+@router.get("/api/maps")
+async def get_maps_api():
+    """获取可用地图列表（供前端下拉框使用）"""
+    return {
+        'maps': get_available_maps()
+    }
+
+
+@router.get("/api/maps/{map_id}")
+async def get_map_by_id_api(map_id: str):
+    """获取指定ID的地图数据"""
+    return get_track_by_id(map_id)
