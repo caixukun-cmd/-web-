@@ -1,0 +1,23 @@
+{
+  "name": "中级循线地图 - S 曲线训练",
+  "trackWidth": 0.3,
+  "segments": [
+    { "type": "line", "start": [0, 0], "end": [0, 6] },
+
+    { "type": "arc", "center": [3, 6], "radius": 3, "startAngle": 180, "endAngle": 90, "clockwise": true },
+
+    { "type": "line", "start": [3, 9], "end": [9, 9] },
+
+    { "type": "arc", "center": [9, 6], "radius": 3, "startAngle": 90, "endAngle": 0, "clockwise": true },
+
+    { "type": "line", "start": [12, 6], "end": [12, 2] },
+
+    { "type": "arc", "center": [9, 2], "radius": 3, "startAngle": 0, "endAngle": -90, "clockwise": true },
+
+    { "type": "line", "start": [9, -1], "end": [3, -1] },
+
+    { "type": "arc", "center": [3, 2], "radius": 3, "startAngle": -90, "endAngle": -180, "clockwise": true },
+
+    { "type": "line", "start": [0, 2], "end": [0, 0] }
+  ]
+}

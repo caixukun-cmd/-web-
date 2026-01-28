@@ -1,0 +1,21 @@
+{
+    "name": "示例循线轨道",
+    "trackWidth": 0.3,
+    "segments": [
+            {"type": "line", "start": [0, 0], "end": [0, 10]},
+
+            {"type": "arc", "center": [3, 10], "radius": 3, "startAngle": 180, "endAngle": 90, "clockwise": true},
+
+            {"type": "line", "start": [3, 13], "end": [10, 13]},
+
+            {"type": "arc", "center": [10, 10], "radius": 3, "startAngle": 90, "endAngle": 0, "clockwise": true},
+
+            {"type": "line", "start": [13, 10], "end": [13, 3]},
+
+            {"type": "arc", "center": [10, 3], "radius": 3, "startAngle": 0, "endAngle": -90, "clockwise": true},
+
+            {"type": "line", "start": [10, 0], "end": [3, 0]},
+
+            {"type": "arc", "center": [3, 3], "radius": 3, "startAngle": -90, "endAngle": -180, "clockwise": true}
+        ]
+    }

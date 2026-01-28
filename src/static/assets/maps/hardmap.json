@@ -1,0 +1,27 @@
+{
+  "name": "进阶循线地图 - 急弯挑战",
+  "trackWidth": 0.25,
+  "segments": [
+    { "type": "line", "start": [0, 0], "end": [0, 5] },
+
+    { "type": "arc", "center": [2, 5], "radius": 2, "startAngle": 180, "endAngle": 90, "clockwise": true },
+
+    { "type": "line", "start": [2, 7], "end": [7, 7] },
+
+    { "type": "arc", "center": [7, 5], "radius": 2, "startAngle": 90, "endAngle": 0, "clockwise": true },
+
+    { "type": "line", "start": [9, 5], "end": [9, 1] },
+
+    { "type": "arc", "center": [7, 1], "radius": 2, "startAngle": 0, "endAngle": -90, "clockwise": true },
+
+    { "type": "line", "start": [7, -1], "end": [3, -1] },
+
+    { "type": "arc", "center": [3, 1], "radius": 2, "startAngle": -90, "endAngle": -180, "clockwise": true },
+
+    { "type": "line", "start": [1, 1], "end": [1, 4] },
+
+    { "type": "arc", "center": [3, 4], "radius": 2, "startAngle": 180, "endAngle": 90, "clockwise": true },
+
+    { "type": "line", "start": [3, 6], "end": [10, 6] }
+  ]
+}
