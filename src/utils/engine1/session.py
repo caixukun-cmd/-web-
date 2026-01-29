@@ -17,6 +17,7 @@ sys.path.insert(0, grandparent_dir)
 
 from src.utils.simulator import get_demo_track, get_demo_track_with_checksum, get_available_maps, get_track_by_id
 from src.utils.sandbox import CodeSandbox
+from src.utils.engine1.protocol import PROTOCOL_ROUTER
 
 
 class Engine1Session:
@@ -42,6 +43,14 @@ class Engine1Session:
         from src.utils.simulator import CarSimulator
         self.simulator = CarSimulator()
         self.sandbox = CodeSandbox(self.simulator.car, self.send_message, self.simulator)
+        
+        # 在初始化时加载默认地图
+        demo_track = get_demo_track()
+        self.simulator.car.load_track_data(demo_track)
+        print(f"[Session] 默认轨道已加载到模拟器: {len(self.simulator.car.track_waypoints)} 个路径点")
+        
+        # 初始化时也设置当前地图ID为easy
+        self.simulator.car.current_map_id = 'easy'
 
     async def start(self):
         """启动会话，启动仿真和广播任务"""
@@ -75,35 +84,11 @@ class Engine1Session:
                 break
 
     async def handle_message(self, message_str: str):
-        """处理接收到的消息"""
-        try:
-            message = json.loads(message_str)
-            msg_type = message.get('type')
-
-            if msg_type == 'run_code' or msg_type == 'execute_code':
-                await self._handle_run_code(message)
-            elif msg_type == 'stop' or msg_type == 'reset':
-                await self._handle_stop()
-            elif msg_type == 'get_maps':
-                await self._handle_get_maps()
-            elif msg_type == 'select_map':
-                await self._handle_select_map(message)
-            elif msg_type == 'home':
-                await self._handle_home()
-            # 其他控制小车的消息
-            elif msg_type == 'control_car':
-                await self._handle_control_car(message)
-            # 轨道相关消息
-            elif msg_type == 'track_load':
-                await self._handle_track_load(message)
-            elif msg_type == 'track_clear':
-                await self.send_message({'type': 'track_clear'})
-            elif msg_type == 'line_disable':
-                await self._handle_line_disable()
-            else:
-                print(f"未知消息类型: {msg_type}")
-        except Exception as e:
-            print(f"处理消息时发生错误: {e}")
+        """处理接收到的消息 - 通过协议路由"""
+        # 使用协议路由器处理消息
+        success = await PROTOCOL_ROUTER.route_message(self, message_str)
+        if not success:
+            print(f"消息处理失败: {message_str[:100]}...")
 
     async def _handle_run_code(self, message: dict):
         """处理运行代码请求"""
@@ -111,7 +96,7 @@ class Engine1Session:
         code = message.get('code', '')
         if code:
             await self.send_message({'type': 'log', 'message': '开始执行代码...', 'level': 'info'})
-
+    
             # 关键：先取消旧的执行任务（防止重复运行）
             if self.code_execution_task and not self.code_execution_task.done():
                 self.code_execution_task.cancel()
@@ -119,10 +104,10 @@ class Engine1Session:
                     await self.code_execution_task
                 except asyncio.CancelledError:
                     pass
-
+    
             # 在后台运行 execute，不阻塞主循环
             self.code_execution_task = asyncio.create_task(self.sandbox.execute(code))
-
+    
         self.simulator.end_code_execution()
 
     async def _handle_stop(self):
@@ -154,7 +139,8 @@ class Engine1Session:
                 pass
 
         # 停止处理
-        self.sandbox.car_api._stopped = True
+        if self.sandbox.car_api:
+            self.sandbox.car_api._stopped = True
         self.simulator.car.stop()
         self.simulator.car.current_speed = 0.0
         self.simulator.car.target_speed = 0.0
@@ -371,6 +357,12 @@ class Engine1Session:
             'track': track_data
         })
 
+    async def _handle_track_clear(self):
+        """处理轨道清除"""
+        await self.send_message({
+            'type': 'track_clear'
+        })
+
     async def _handle_line_disable(self):
         """处理循线禁用"""
         self.simulator.car.disable_line_following()
@@ -397,5 +389,5 @@ class Engine1Session:
         self.simulator.stop()
         
         # 重置 sandbox 的停止标志
-        if hasattr(self.sandbox, 'car_api'):
+        if getattr(self.sandbox, 'car_api', None):
             self.sandbox.car_api._stopped = False  # 下次运行重置标志

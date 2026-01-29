@@ -63,8 +63,9 @@ icar-simulation/
 ├── src/                   # 源代码
 │   ├── api/              # API路由
 │   │   ├── __init__.py
-│   │   ├── auth.py       # 认证路由
-│   │   └── websocket.py  # WebSocket路由
+│   │   ├── auth.py           # 认证路由
+│   │   ├── websocket_engine1.py  # 第一引擎WebSocket路由
+│   │   └── websocket_engine2.py  # 第二引擎WebSocket路由（预留）
 │   ├── models/           # 数据模型
 │   │   ├── __init__.py
 │   │   └── user.py
@@ -73,6 +74,13 @@ icar-simulation/
 │   │   └── user.py
 │   ├── utils/            # 工具类
 │   │   ├── __init__.py
+│   │   ├── engine1/      # 第一引擎
+│   │   │   ├── session.py    # 引擎会话管理
+│   │   │   ├── simulator.py  # 仿真器
+│   │   │   ├── sandbox.py    # 代码沙箱
+│   │   │   └── protocol.py   # 消息协议路由
+│   │   ├── engine2/      # 第二引擎（预留）
+│   │   │   └── session.py    # 第二引擎会话管理（预留）
 │   │   ├── simulator.py  # 仿真器
 │   │   ├── sandbox.py    # 代码沙箱
 │   │   └── security.py   # 安全工具
@@ -233,9 +241,21 @@ DATABASE_URL=sqlite+aiosqlite:///./icar_simulation.db
 ## 开发说明
 
 ### 添加新的API路由
-1. 在`routers/`目录下创建新的路由文件
-2. 在`routers/__init__.py`中导出
+1. 在`src/api/`目录下创建新的路由文件
+2. 在`src/api/__init__.py`中导出
 3. 在`main.py`中注册路由
+
+### Engine Gateway 架构
+系统采用三层架构设计：
+- **Transport Layer (WebSocket)**: 负责连接管理与消息收发，不包含业务逻辑
+- **Application Layer (EngineSession)**: 负责业务逻辑处理，包括仿真控制、沙箱调度、地图/轨道交互等
+- **Domain Layer (Simulator)**: 负责物理与轨道逻辑，与WebSocket完全解耦
+
+### 添加新的引擎
+1. 在`src/utils/engineN/`目录下创建新的引擎模块
+2. 实现对应的Session类
+3. 在`src/api/`目录下创建对应的WebSocket路由文件
+4. 更新`src/api/__init__.py`导入新路由
 
 ### 添加新的数据模型
 1. 在`models/`目录下创建模型文件
@@ -248,7 +268,7 @@ DATABASE_URL=sqlite+aiosqlite:///./icar_simulation.db
 - 前端开发时注意修改`static/js/auth.js`中的`API_BASE_URL`
 
 ## 后续开发计划
-1. 引入第二物理引擎，用于服务进阶
+1. 实现第二物理引擎（Engine2），用于服务进阶用户
 2. 优化3D渲染性能
 3. 增加更多传感器模拟功能
 4. 添加物理碰撞检测
