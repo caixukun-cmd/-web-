@@ -1,5 +1,6 @@
 """
-WebSocket路由 - 处理实时通信（第一引擎）
+WebSocket端点 - 第一引擎
+只负责通信层面的工作，业务逻辑委托给 Engine1Session
 """
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict, Set
@@ -14,7 +15,6 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 from src.utils.engine1.session import Engine1Session
-from src.utils.simulator import get_demo_track_with_checksum, get_available_maps, get_track_by_id
 
 router = APIRouter()
 
@@ -25,8 +25,8 @@ active_connections: Set[WebSocket] = set()
 sessions: Dict[WebSocket, Engine1Session] = {}
 
 
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@router.websocket("/ws/engine1")
+async def websocket_engine1_endpoint(websocket: WebSocket):
     await websocket.accept()
     active_connections.add(websocket)
 
@@ -44,7 +44,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await session.start()
 
     try:
-        await websocket.send_json({'type': 'log', 'message': 'WebSocket连接成功', 'level': 'success'})
+        await websocket.send_json({'type': 'log', 'message': '第一引擎WebSocket连接成功', 'level': 'success'})
 
         while True:
             data = await websocket.receive_text()
@@ -66,32 +66,9 @@ async def websocket_endpoint(websocket: WebSocket):
             del sessions[websocket]
 
 
-@router.get("/ws/status")
-async def websocket_status():
+@router.get("/ws/engine1/status")
+async def websocket_engine1_status():
     return {
         "active_connections": len(active_connections),
         "status": "running"
     }
-
-
-@router.get("/api/track/demo")
-async def get_demo_track_api():
-    """获取演示轨道数据（前端用于渲染，带校验信息）"""
-    from src.utils.simulator import get_demo_track_with_checksum
-    return get_demo_track_with_checksum()
-
-
-@router.get("/api/maps")
-async def get_maps_api():
-    """获取可用地图列表（供前端下拉框使用）"""
-    from src.utils.simulator import get_available_maps
-    return {
-        'maps': get_available_maps()
-    }
-
-
-@router.get("/api/maps/{map_id}")
-async def get_map_by_id_api(map_id: str):
-    """获取指定ID的地图数据"""
-    from src.utils.simulator import get_track_by_id
-    return get_track_by_id(map_id)
