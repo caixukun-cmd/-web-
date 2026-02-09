@@ -819,9 +819,9 @@
                            'for speed, duration, action in directions:\n' +
                            '    if "转" in action:\n' +
                            '        if "右" in action:\n' +
-                           '            car.turn_right(90)\n' +
+                           '            car.turn_left(90)\n' +
                            '        else:\n' +
-                           '            car.turn_left(45)\n' +
+                           '            car.turn_right(45)\n' +
                            '        await time.sleep(1)  # 转向后停顿\n' +
                            '    else:\n' +
                            '        if speed > 0:\n' +
