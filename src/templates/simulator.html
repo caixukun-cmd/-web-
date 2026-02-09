@@ -339,15 +339,15 @@
     </div>
 
     <!-- Monaco Editor -->
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js" integrity="" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js" crossorigin="anonymous"></script>
     
     <!-- Three.js - 使用模块版本 -->
     <script type="importmap">
     {
         "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/",
-            "three/addons/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/jsm/loaders/GLTFLoader.js"
+            "three": "https://unpkg.com/three@0.159.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.159.0/examples/jsm/",
+            "three/addons/loaders/GLTFLoader.js": "https://unpkg.com/three@0.159.0/examples/jsm/loaders/GLTFLoader.js"
         }
     }
     </script>
@@ -424,27 +424,37 @@
                             'print("演示结束，最终位置:", car.get_position())';
 
         // 初始化Monaco Editor
-        require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
-        require(['vs/editor/editor.main'], function () {
-            editor = monaco.editor.create(document.getElementById('editor'), {
-                value: defaultCode,
-                language: 'python',
-                theme: 'vs-dark',
-                automaticLayout: true,
-                fontSize: 14,
-                minimap: { enabled: true },
-                scrollBeyondLastLine: false,
-                lineNumbers: 'on',
-                roundedSelection: false,
-                readOnly: false,
-                cursorStyle: 'line'
+        if (typeof require !== 'undefined') {
+            require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+            require(['vs/editor/editor.main'], function () {
+                editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: defaultCode,
+                    language: 'python',
+                    theme: 'vs-dark',
+                    automaticLayout: true,
+                    fontSize: 14,
+                    minimap: { enabled: true },
+                    scrollBeyondLastLine: false,
+                    lineNumbers: 'on',
+                    roundedSelection: false,
+                    readOnly: false,
+                    cursorStyle: 'line'
+                });
+                
+                // 设置基本移动演示为默认选择
+                if (document.getElementById('exampleSelector')) {
+                    document.getElementById('exampleSelector').value = 'basic';
+                }
             });
-            
-            // 设置基本移动演示为默认选择
-            if (document.getElementById('exampleSelector')) {
-                document.getElementById('exampleSelector').value = 'basic';
-            }
-        });
+        } else {
+            console.error('Monaco Editor loader.js 加载失败，请检查网络连接');
+            setTimeout(() => {
+                const editorDiv = document.getElementById('editor');
+                if (editorDiv) {
+                    editorDiv.innerHTML = '<div style="color:#f44336;padding:20px;font-size:14px;">代码编辑器加载失败<br>请检查网络连接后刷新页面</div>';
+                }
+            }, 500);
+        }
 
         // 初始化Three.js场景
         function initThreeJS() {
