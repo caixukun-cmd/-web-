@@ -35,6 +35,12 @@ async def websocket_endpoint(websocket: WebSocket):
     - 创建EngineSession实例
     - 转发消息给会话处理
     - 断开连接时清理资源
+
+    当前新增视觉相关协议：
+    - vision_frame: 前端上传一帧 base64 图像
+    - vision_detect: 请求后端立即对当前帧做一次检测
+    - vision_status: 查询当前视觉模块状态
+    - vision_projection_result: 前端上传仿真真值投影后的标准检测结果
     """
     await websocket.accept()
     active_connections.add(websocket)
@@ -56,9 +62,30 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.send_json({'type': 'log', 'message': 'WebSocket连接成功', 'level': 'success'})
 
         while True:
-            data = await websocket.receive_text()
-            # 将消息处理完全委托给会话
-            await session.handle_message(data)
+            raw_message = await websocket.receive_text()
+
+            # 这里先把消息解析成 JSON，
+            # 目的是为了在 WebSocket 入口层先识别视觉相关消息类型。
+            try:
+                message_data = json.loads(raw_message)
+            except json.JSONDecodeError:
+                await websocket.send_json({
+                    'type': 'error',
+                    'message': '收到非法 JSON 消息，无法解析'
+                })
+                continue
+
+            message_type = message_data.get('type')
+
+            # 视觉相关协议在这里优先分流。
+            # 这样后续如果视觉模块继续扩展，例如上传深度图、上传标注、请求评测等，
+            # 都可以沿着同一条协议分支继续演进。
+            if message_type in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result'}:
+                await session.handle_vision_message(message_data)
+                continue
+
+            # 其他消息保持原有处理方式，继续交给会话层的通用消息入口。
+            await session.handle_message(raw_message)
 
     except WebSocketDisconnect:
         pass
@@ -113,6 +140,8 @@ async def websocket_engine1_endpoint(websocket: WebSocket):
     - 创建EngineSession实例
     - 转发消息给会话处理
     - 断开连接时清理资源
+
+    与 /ws 保持一致，同样支持视觉相关协议。
     """
     await websocket.accept()
     active_connections.add(websocket)
@@ -134,9 +163,24 @@ async def websocket_engine1_endpoint(websocket: WebSocket):
         await websocket.send_json({'type': 'log', 'message': '第一引擎WebSocket连接成功', 'level': 'success'})
 
         while True:
-            data = await websocket.receive_text()
-            # 将消息处理完全委托给会话
-            await session.handle_message(data)
+            raw_message = await websocket.receive_text()
+
+            try:
+                message_data = json.loads(raw_message)
+            except json.JSONDecodeError:
+                await websocket.send_json({
+                    'type': 'error',
+                    'message': '收到非法 JSON 消息，无法解析'
+                })
+                continue
+
+            message_type = message_data.get('type')
+
+            if message_type in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result'}:
+                await session.handle_vision_message(message_data)
+                continue
+
+            await session.handle_message(raw_message)
 
     except WebSocketDisconnect:
         pass

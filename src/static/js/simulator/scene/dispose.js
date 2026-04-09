@@ -8,6 +8,7 @@ import { stopLoop } from '../loop/animate.js';
 import { unbindFreeCamKeys } from '../camera/freeCam.js';
 import { ChunkManager } from '../map/chunkManager.js';
 import { onWindowResize } from './resize.js';
+import { disposeObstacleProjection } from '../vision/obstacleProjector.js';
 
 export function dispose() {
     stopLoop();
@@ -31,7 +32,8 @@ export function dispose() {
     if (runtime.socket) {
         runtime.socket.close();
     }
-    
+
+    disposeObstacleProjection();
     runtime.setIsConnected(false);
     window.removeEventListener('resize', onWindowResize);
 }

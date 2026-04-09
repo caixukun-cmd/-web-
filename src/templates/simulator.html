@@ -238,6 +238,209 @@
             color: #ddd;
         }
 
+        .api-panel {
+            background: linear-gradient(180deg, #181818 0%, #111111 100%);
+            border-top: 1px solid #333;
+            padding: 12px 14px;
+            height: 190px;
+            min-height: 120px;
+            max-height: 45vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .api-panel-resizer {
+            height: 10px;
+            cursor: row-resize;
+            background: linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(76,175,80,0.35) 50%, rgba(255,255,255,0.08) 100%);
+            border-top: 1px solid #2a2a2a;
+            border-bottom: 1px solid #252525;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .api-panel-resizer::after {
+            content: '↕ 拖动调整 API 面板高度';
+            position: absolute;
+            top: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #9aa09a;
+            background: #161616;
+            padding: 0 8px;
+            line-height: 10px;
+        }
+
+        .api-panel h4 {
+            color: #f5f5f5;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .api-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #2f2f2f;
+            border-left: 3px solid #4CAF50;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .api-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .api-card-title {
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+
+        .api-help-btn {
+            border: 1px solid #4f6f58;
+            background: rgba(76, 175, 80, 0.12);
+            color: #b9efc2;
+            border-radius: 999px;
+            padding: 3px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .api-help-btn:hover {
+            background: rgba(76, 175, 80, 0.22);
+            color: #ffffff;
+        }
+
+        .api-card-desc {
+            color: #b9b9b9;
+            font-size: 11px;
+            line-height: 1.5;
+            margin-bottom: 6px;
+        }
+
+        .api-card code {
+            display: block;
+            color: #8bd5ff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .api-tips {
+            margin-top: 10px;
+            color: #8e8e8e;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .glossary-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.58);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .glossary-modal.open {
+            display: flex;
+        }
+
+        .glossary-dialog {
+            width: min(760px, 92vw);
+            max-height: 80vh;
+            overflow-y: auto;
+            background: #151515;
+            border: 1px solid #313131;
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+            padding: 18px;
+        }
+
+        .glossary-dialog-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            gap: 12px;
+        }
+
+        .glossary-dialog-header h4 {
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .glossary-close {
+            border: 1px solid #444;
+            background: #242424;
+            color: #ddd;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .glossary-close:hover {
+            background: #2d2d2d;
+        }
+
+        .glossary-intro {
+            color: #aaaaaa;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .glossary-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .glossary-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #2d2d2d;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .glossary-term {
+            color: #9fe7aa;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .glossary-desc {
+            color: #c8c8c8;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .glossary-example {
+            margin-top: 6px;
+            color: #8bd5ff;
+            font-size: 11px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            white-space: pre-wrap;
+        }
+
         .console-line {
             margin: 2px 0;
             padding: 2px 5px;
@@ -285,6 +488,7 @@
                         <option value="square">方形路径演示</option>
                         <option value="continuous">连续移动演示</option>
                         <option value="line_follow">自动循线演示</option>
+                        <option value="platform_api">评测接口演示</option>
                     </select>
                     <button class="btn btn-run" id="runBtn" onclick="runCode()">▶ 运行</button>
                     <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 终止</button>
@@ -295,6 +499,74 @@
             <div class="console" id="console">
                 <div class="console-line info">欢迎使用智能小车模拟仿真系统</div>
                 <div class="console-line info">在左侧编辑器中编写代码，点击"运行"按钮查看小车运行效果</div>
+            </div>
+            <div class="api-panel-resizer" id="apiPanelResizer" title="拖动调整 API 说明面板高度"></div>
+            <div class="api-panel" id="apiPanel">
+                <h4>📘 平台 API 说明面板</h4>
+                <div class="api-grid">
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <div class="api-card-title">`car` 控制接口</div>
+                        </div>
+                        <div class="api-card-desc">负责运动控制、转向、循线与轨道加载。</div>
+                        <code>car.forward(speed, duration)
+car.backward(speed, duration)
+await car.load_demo_track()
+await car.enable_line_following(...)</code>
+                    </div>
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <div class="api-card-title">`env` 环境状态</div>
+                        </div>
+                        <div class="api-card-desc">读取当前小车与环境状态，适合写闭环控制逻辑。</div>
+                        <code>env.get_state()
+env.is_collision()
+env.get_collision_count()
+env.get_progress()</code>
+                    </div>
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <div class="api-card-title">`task` 任务接口</div>
+                        </div>
+                        <div class="api-card-desc">描述当前任务、结束条件与成功条件。</div>
+                        <code>task.get_info()
+task.is_finished()
+task.is_success()</code>
+                    </div>
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <div class="api-card-title">`judge` 评测接口</div>
+                            <button class="api-help-btn" type="button" onclick="openGlossary('judge')">术语解释</button>
+                        </div>
+                        <div class="api-card-desc">统一获取分数、通过状态和详细评测报告。</div>
+                        <code>judge.get_report()
+judge.get_score()
+judge.is_passed()</code>
+                    </div>
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <div class="api-card-title">`vision` 视觉接口</div>
+                            <button class="api-help-btn" type="button" onclick="openGlossary('vision')">术语解释</button>
+                        </div>
+                        <div class="api-card-desc">读取图像帧、调用平台检测器、提交用户检测结果。</div>
+                        <code>await vision.get_frame()
+await vision.detect()
+vision.submit_result(...)
+await vision.get_evaluation()</code>
+                    </div>
+                    <div class="api-card">
+                        <div class="api-card-header">
+                            <div class="api-card-title">建议上手顺序</div>
+                        </div>
+                        <div class="api-card-desc">先跑示例，再看状态，再做评测。</div>
+                        <code>1. 基本移动演示
+2. 自动循线演示
+3. 评测接口演示</code>
+                    </div>
+                </div>
+                <div class="api-tips">
+                    提示：想快速体验新接口，请在左上角示例代码里选择“评测接口演示”。如果要做算法评测，推荐先调用 `task.get_info()` 了解任务，再结合 `env` 与 `judge` 编写闭环逻辑。
+                </div>
             </div>
         </div>
 
@@ -318,6 +590,13 @@
                             <option value="car_front">车前视角</option>
                         </select>
                     </div>
+                    <!-- 视觉帧采集控制 -->
+                    <div class="camera-select">
+                        <span>视觉采集:</span>
+                        <button class="btn btn-run" id="visionCaptureBtn" onclick="toggleVisionCapture()" style="padding: 4px 10px; font-size: 12px;">
+                            开启
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="canvas-container">
@@ -335,6 +614,17 @@
                     <span>速度: <span id="speed">0.00</span> m/s</span>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="glossary-modal" id="glossaryModal" onclick="handleGlossaryBackdrop(event)">
+        <div class="glossary-dialog" role="dialog" aria-modal="true" aria-labelledby="glossaryTitle">
+            <div class="glossary-dialog-header">
+                <h4 id="glossaryTitle">术语解释</h4>
+                <button class="glossary-close" type="button" onclick="closeGlossary()">关闭</button>
+            </div>
+            <div class="glossary-intro" id="glossaryIntro"></div>
+            <div class="glossary-list" id="glossaryList"></div>
         </div>
     </div>
 
@@ -365,7 +655,10 @@
             resetFreeCamera,
             clearPath,
             startPathRecording,
-            stopPathRecording
+            stopPathRecording,
+            enableVisionFrameCapture,
+            disableVisionFrameCapture,
+            isVisionFrameCaptureEnabled
         } from '/js/simulator.js';
         
         // 将模块函数暴露到全局作用域
@@ -378,6 +671,9 @@
         window.clearPath = clearPath;
         window.startPathRecording = startPathRecording;
         window.stopPathRecording = stopPathRecording;
+        window.enableVisionFrameCapture = enableVisionFrameCapture;
+        window.disableVisionFrameCapture = disableVisionFrameCapture;
+        window.isVisionFrameCaptureEnabled = isVisionFrameCaptureEnabled;
     </script>
     <script>
         let editor;
@@ -391,9 +687,92 @@
         window.handleLogout = handleLogout;
         window.loadExampleCode = loadExampleCode;
         window.selectMap = selectMap;  // 新增：地图选择函数
+        window.toggleVisionCapture = toggleVisionCapture;
+        window.openGlossary = openGlossary;
+        window.closeGlossary = closeGlossary;
+        window.handleGlossaryBackdrop = handleGlossaryBackdrop;
 
         // 当前选中的地图ID
         let currentMapId = null;
+        
+        // 当前视觉采集是否启用（用于按钮展示状态）
+        let visionCaptureEnabled = false;
+        let apiPanelResizeState = null;
+
+        const glossaryData = {
+            judge: {
+                title: 'Judge 评测术语解释',
+                intro: 'Judge 负责把小车运行结果整理为统一评测报告。下面这些词更偏向算法评测、任务判定与评分体系。',
+                items: [
+                    {
+                        term: 'score',
+                        desc: '平台根据进度、碰撞、终点距离、耗时等指标计算出的综合分数，通常范围为 0 到 100。',
+                        example: '例如：score = 86.5 表示整体表现较好，但仍有可优化空间。'
+                    },
+                    {
+                        term: 'passed',
+                        desc: '是否通过当前任务的布尔结果。它通常由平台规则决定，而不是单纯由分数决定。',
+                        example: '例如：即使 score 不低，只要 collision_count > 0，也可能 passed = false。'
+                    },
+                    {
+                        term: 'progress',
+                        desc: '任务完成进度，通常表示小车沿轨道或任务路线推进到了什么程度。',
+                        example: '例如：progress = 0.75 表示大约完成了 75% 的任务路径。'
+                    },
+                    {
+                        term: 'collision_count',
+                        desc: '累计碰撞次数，是评判控制算法稳定性与安全性的重要指标。',
+                        example: '例如：避障任务里 collision_count 越小越好，理想值通常是 0。'
+                    },
+                    {
+                        term: 'distance_to_goal',
+                        desc: '小车当前位置距离终点的估计距离。越小越接近成功完成任务。',
+                        example: '例如：distance_to_goal = 0.2 往往说明已经非常接近终点。'
+                    },
+                    {
+                        term: 'elapsed_time',
+                        desc: '从任务开始到当前时刻经历的时间，用于评价效率。',
+                        example: '例如：相同 progress 下，elapsed_time 更短的算法通常更优。'
+                    }
+                ]
+            },
+            vision: {
+                title: 'Vision 视觉术语解释',
+                intro: 'Vision 负责图像获取、平台检测与视觉评测。下面这些词属于计算机视觉和目标检测中的常用术语。',
+                items: [
+                    {
+                        term: 'frame',
+                        desc: '一帧图像，即当前时刻采集到的单张画面。视觉算法通常按帧处理输入。',
+                        example: '例如：await vision.get_frame() 会获取最新一帧图像。'
+                    },
+                    {
+                        term: 'detection',
+                        desc: '检测结果中的一个目标实例，通常包含类别、置信度与边界框。',
+                        example: '例如：一个障碍物就对应 detections 数组中的一个元素。'
+                    },
+                    {
+                        term: 'bbox',
+                        desc: 'Bounding Box，边界框。用于表示目标在图像中的矩形范围。',
+                        example: '例如：bbox = {x1, y1, x2, y2} 表示左上和右下坐标。'
+                    },
+                    {
+                        term: 'confidence',
+                        desc: '模型认为该目标属于某类别的置信程度，一般范围是 0 到 1。',
+                        example: '例如：confidence = 0.92 表示模型非常确信该目标存在。'
+                    },
+                    {
+                        term: 'precision / recall',
+                        desc: 'precision 衡量检出的目标里有多少是真的；recall 衡量真实目标里有多少被检出。',
+                        example: '例如：precision 高但 recall 低，说明误检少但漏检多。'
+                    },
+                    {
+                        term: 'IoU',
+                        desc: 'Intersection over Union，用来衡量两个边界框重叠程度的指标，是目标检测评测的核心概念。',
+                        example: '例如：IoU 越高，说明用户提交的框和标准答案越接近。'
+                    }
+                ]
+            }
+        };
 
         // 默认示例代码
         const defaultCode = '# 基本移动演示\n' +
@@ -461,6 +840,7 @@
             const container = document.getElementById('canvas-container');
             if (window.initScene) {
                 initScene(container);
+                updateVisionCaptureButton();
                 addConsoleLog('3D场景初始化完成', 'success');
             } else {
                 console.error('initScene 函数未定义');
@@ -557,6 +937,124 @@
             line.textContent = `[${timestamp}] ${message}`;
             consoleEl.appendChild(line);
             consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function initApiPanelResize() {
+            const panel = document.getElementById('apiPanel');
+            const resizer = document.getElementById('apiPanelResizer');
+            if (!panel || !resizer) return;
+
+            const startResize = (event) => {
+                event.preventDefault();
+                apiPanelResizeState = {
+                    startY: event.clientY,
+                    startHeight: panel.offsetHeight
+                };
+                document.body.style.userSelect = 'none';
+                document.body.style.cursor = 'row-resize';
+            };
+
+            const onResize = (event) => {
+                if (!apiPanelResizeState) return;
+                const delta = apiPanelResizeState.startY - event.clientY;
+                const nextHeight = apiPanelResizeState.startHeight + delta;
+                const minHeight = 120;
+                const maxHeight = Math.round(window.innerHeight * 0.45);
+                panel.style.height = `${Math.max(minHeight, Math.min(maxHeight, nextHeight))}px`;
+            };
+
+            const stopResize = () => {
+                if (!apiPanelResizeState) return;
+                apiPanelResizeState = null;
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+            };
+
+            resizer.addEventListener('mousedown', startResize);
+            window.addEventListener('mousemove', onResize);
+            window.addEventListener('mouseup', stopResize);
+        }
+
+        function openGlossary(type) {
+            const config = glossaryData[type];
+            const modal = document.getElementById('glossaryModal');
+            const title = document.getElementById('glossaryTitle');
+            const intro = document.getElementById('glossaryIntro');
+            const list = document.getElementById('glossaryList');
+            if (!config || !modal || !title || !intro || !list) return;
+
+            title.textContent = config.title;
+            intro.textContent = config.intro;
+            list.innerHTML = config.items.map(item => `
+                <div class="glossary-item">
+                    <div class="glossary-term">${item.term}</div>
+                    <div class="glossary-desc">${item.desc}</div>
+                    <div class="glossary-example">${item.example}</div>
+                </div>
+            `).join('');
+            modal.classList.add('open');
+        }
+
+        function closeGlossary() {
+            const modal = document.getElementById('glossaryModal');
+            if (modal) {
+                modal.classList.remove('open');
+            }
+        }
+
+        function handleGlossaryBackdrop(event) {
+            if (event.target && event.target.id === 'glossaryModal') {
+                closeGlossary();
+            }
+        }
+
+        // 更新视觉采集按钮状态
+        function updateVisionCaptureButton() {
+            const btn = document.getElementById('visionCaptureBtn');
+            if (!btn) return;
+
+            if (visionCaptureEnabled) {
+                btn.textContent = '关闭';
+                btn.classList.remove('btn-run');
+                btn.classList.add('btn-stop');
+                btn.title = '点击关闭视觉帧采集';
+            } else {
+                btn.textContent = '开启';
+                btn.classList.remove('btn-stop');
+                btn.classList.add('btn-run');
+                btn.title = '点击开启视觉帧采集';
+            }
+        }
+
+        // 开关视觉帧采集（用于答辩演示）
+        function toggleVisionCapture() {
+            if (!isWebSocketConnected()) {
+                addConsoleLog('WebSocket未连接，无法切换视觉帧采集', 'error');
+                return;
+            }
+
+            try {
+                if (!visionCaptureEnabled) {
+                    const success = window.enableVisionFrameCapture ? window.enableVisionFrameCapture() : false;
+                    if (success) {
+                        visionCaptureEnabled = true;
+                        updateVisionCaptureButton();
+                        addConsoleLog('已开启视觉帧采集，前端将定时上传画面到后端', 'success');
+                    } else {
+                        addConsoleLog('开启视觉帧采集失败，请确认 3D 场景已完成初始化', 'error');
+                    }
+                } else {
+                    if (window.disableVisionFrameCapture) {
+                        window.disableVisionFrameCapture();
+                    }
+                    visionCaptureEnabled = false;
+                    updateVisionCaptureButton();
+                    addConsoleLog('已关闭视觉帧采集', 'info');
+                }
+            } catch (error) {
+                console.error('切换视觉帧采集失败:', error);
+                addConsoleLog('切换视觉帧采集失败: ' + error.message, 'error');
+            }
         }
 
         // 运行代码
@@ -883,6 +1381,47 @@
                            '# car.set_line_pid(kp, ki, kd)  - 动态调整 PID\n' +
                            '# car.set_steering_scale(scale) - 调整转向缩放';
                     break;
+                case 'platform_api':
+                    code = '# 平台评测接口演示\n' +
+                           'print("=== 平台评测接口演示 ===")\n' +
+                           '\n' +
+                           'print("任务信息:")\n' +
+                           'print(task.get_info())\n' +
+                           '\n' +
+                           'print("初始环境状态:")\n' +
+                           'print(env.get_state())\n' +
+                           '\n' +
+                           'print("加载轨道并前进...")\n' +
+                           'await car.load_demo_track()\n' +
+                           'car.forward(60, 3.0)\n' +
+                           'await car.wait()\n' +
+                           '\n' +
+                           'print("当前进度:")\n' +
+                           'print(env.get_progress())\n' +
+                           '\n' +
+                           'print("是否碰撞:", env.is_collision())\n' +
+                           'print("碰撞次数:", env.get_collision_count())\n' +
+                           '\n' +
+                           'print("任务是否结束:", task.is_finished())\n' +
+                           'print("任务是否成功:", task.is_success())\n' +
+                           '\n' +
+                           'print("统一评测报告:")\n' +
+                           'print(judge.get_report())\n' +
+                           'print("分数:", judge.get_score())\n' +
+                           'print("是否通过:", judge.is_passed())\n' +
+                           '\n' +
+                           '# ===== 平台 API 参考 =====\n' +
+                           '# env.get_state()               - 获取完整环境状态\n' +
+                           '# env.is_collision()            - 判断当前是否碰撞\n' +
+                           '# env.get_collision_count()     - 获取累计碰撞次数\n' +
+                           '# env.get_progress()            - 获取进度/终点距离/耗时\n' +
+                           '# task.get_info()               - 获取任务说明与评分项\n' +
+                           '# task.is_finished()            - 判断任务是否结束\n' +
+                           '# task.is_success()             - 判断任务是否成功\n' +
+                           '# judge.get_report()            - 获取统一评测报告\n' +
+                           '# judge.get_score()             - 获取分数\n' +
+                           '# judge.is_passed()             - 判断是否通过';
+                    break;
                 default:
                     code = defaultCode;
             }
@@ -931,6 +1470,12 @@
         // 页面加载时初始化
         window.addEventListener('DOMContentLoaded', () => {
             checkAuth();
+            initApiPanelResize();
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeGlossary();
+                }
+            });
             // 延迟初始化，确保模块已加载
             setTimeout(() => {
                 initThreeJS();

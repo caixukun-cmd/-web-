@@ -5,6 +5,7 @@
 
 import * as runtime from '../runtime.js';
 import { requestRender } from '../loop/perf.js';
+import { onProjectionViewportResize } from '../vision/obstacleProjector.js';
 
 export function onWindowResize() {
     const container = runtime.renderer.domElement.parentElement;
@@ -23,5 +24,6 @@ export function onWindowResize() {
     }
 
     runtime.renderer.setSize(container.clientWidth, container.clientHeight);
+    onProjectionViewportResize();
     requestRender();
 }

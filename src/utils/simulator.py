@@ -275,6 +275,9 @@ class VirtualCar:
             'infrared': [0, 0, 0, 0, 0],
             'ultrasonic': 100.0,
         }
+        self.collision_count: int = 0
+        self.last_collision: bool = False
+        self.out_of_bounds: bool = False
         
         # ===== 循线系统状态 =====
         self.line_following_enabled: bool = False
@@ -403,8 +406,15 @@ class VirtualCar:
             self.y += distance * math.cos(rad)
 
             # 简单范围限制（可根据实际场景调整）
-            self.x = max(-self.world_limit, min(self.world_limit, self.x))
-            self.y = max(-self.world_limit, min(self.world_limit, self.y))
+            limited_x = max(-self.world_limit, min(self.world_limit, self.x))
+            limited_y = max(-self.world_limit, min(self.world_limit, self.y))
+            self.out_of_bounds = (limited_x != self.x) or (limited_y != self.y)
+            self.x = limited_x
+            self.y = limited_y
+        else:
+            self.out_of_bounds = False
+
+        self._update_virtual_sensors()
     
     # ===== 循线系统方法 =====
     
@@ -679,6 +689,70 @@ class VirtualCar:
     def get_speed(self) -> float:
         return round(self.current_speed, 2)
 
+    def _nearest_track_distance(self) -> float:
+        if not self.track_waypoints or len(self.track_waypoints) < 2:
+            return float('inf')
+        min_dist = float('inf')
+        for i in range(len(self.track_waypoints) - 1):
+            p1 = self.track_waypoints[i]
+            p2 = self.track_waypoints[i + 1]
+            dist = self._point_to_segment_distance(self.x, self.y, p1['x'], p1['z'], p2['x'], p2['z'])
+            if dist < min_dist:
+                min_dist = dist
+        return min_dist
+
+    def _distance_to_goal(self) -> Optional[float]:
+        if not self.track_waypoints:
+            return None
+        goal = self.track_waypoints[-1]
+        return math.sqrt((self.x - goal['x']) ** 2 + (self.y - goal['z']) ** 2)
+
+    def _estimate_progress(self) -> float:
+        if not self.track_waypoints:
+            return 0.0
+        closest_index = 0
+        closest_dist = float('inf')
+        for index, point in enumerate(self.track_waypoints):
+            dist = math.sqrt((self.x - point['x']) ** 2 + (self.y - point['z']) ** 2)
+            if dist < closest_dist:
+                closest_dist = dist
+                closest_index = index
+        if len(self.track_waypoints) == 1:
+            return 1.0
+        return round(closest_index / (len(self.track_waypoints) - 1), 4)
+
+    def _update_virtual_sensors(self):
+        line_values = self._detect_sensors()
+        self.sensors['infrared'] = line_values
+        nearest_track_dist = self._nearest_track_distance()
+        collision_threshold = max(self.track_width * 2.0, 0.8)
+        is_collision = nearest_track_dist > collision_threshold and abs(self.current_speed) > 0.01
+        if is_collision and not self.last_collision:
+            self.collision_count += 1
+        self.last_collision = is_collision
+        distance_to_goal = self._distance_to_goal()
+        self.sensors['ultrasonic'] = round(distance_to_goal, 3) if distance_to_goal is not None else 100.0
+
+    def get_env_state(self) -> Dict[str, Any]:
+        distance_to_goal = self._distance_to_goal()
+        return {
+            'x': round(self.x, 2),
+            'y': round(self.y, 2),
+            'rotation': round(self.rotation, 2),
+            'speed': round(self.current_speed, 2),
+            'is_moving': self.is_moving,
+            'collision': self.last_collision,
+            'collision_count': self.collision_count,
+            'out_of_bounds': self.out_of_bounds,
+            'map_id': self.current_map_id,
+            'track_loaded': bool(self.track_waypoints),
+            'track_width': self.track_width,
+            'distance_to_goal': round(distance_to_goal, 3) if distance_to_goal is not None else None,
+            'progress': self._estimate_progress(),
+            'line_following_enabled': self.line_following_enabled,
+            'sensors': dict(self.sensors),
+        }
+
     def reset(self):
         """重置所有状态"""
         self.x = 0.0
@@ -700,6 +774,13 @@ class VirtualCar:
         self.pid_integral = 0.0
         self.pid_last_error = 0.0
         self.filtered_error = 0.0
+        self.collision_count = 0
+        self.last_collision = False
+        self.out_of_bounds = False
+        self.sensors = {
+            'infrared': [0, 0, 0, 0, 0],
+            'ultrasonic': 100.0,
+        }
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -719,6 +800,7 @@ class CarSimulator:
         self.car = VirtualCar()
         self.is_running = False
         self.update_interval = 0.05  # 50ms
+        self.start_time = time.time()
 
 
     async def start(self):
@@ -740,9 +822,17 @@ class CarSimulator:
 
     def reset(self):
         self.car.reset()
+        self.start_time = time.time()
 
     def get_state(self) -> Dict[str, Any]:
-        return self.car.to_dict()
+        state = self.car.to_dict()
+        state['elapsed_time'] = round(time.time() - self.start_time, 3)
+        return state
+
+    def get_env_state(self) -> Dict[str, Any]:
+        state = self.car.get_env_state()
+        state['elapsed_time'] = round(time.time() - self.start_time, 3)
+        return state
 
     def start_code_execution(self):
         pass  # 如有需要可保留

@@ -9,6 +9,9 @@ from typing import Dict, Any, Callable, Optional
 from io import StringIO
 import sys
 
+from .vision import VisionAPI
+from .sandbox_apis_append import SafeEnvAPI, SafeTaskAPI, SafeJudgeAPI
+
 
 class CodeValidator:
     """代码验证器 - 使用AST静态分析"""
@@ -219,10 +222,11 @@ class SafeTimeAPI:
 class CodeSandbox:
     """代码执行沙箱"""
 
-    def __init__(self, car, send_callback: Callable, simulator=None):
+    def __init__(self, car, send_callback: Callable, simulator=None, vision: VisionAPI = None):
         self.car = car
         self.send_callback = send_callback
         self.simulator = simulator
+        self.vision = vision
         self.is_running = False
         self.current_task = None  # 当前执行 task
         self.car_api = None  # SafeCarAPI 实例引用
@@ -256,6 +260,10 @@ class CodeSandbox:
                 self.send_callback  # 传递 send_callback 用于循线系统
             ),
             'time': SafeTimeAPI(self.simulator if hasattr(self, 'simulator') else None),
+            'vision': self.vision,
+            'env': SafeEnvAPI(self.simulator) if self.simulator is not None else None,
+            'task': SafeTaskAPI(self.simulator) if self.simulator is not None else None,
+            'judge': SafeJudgeAPI(self.simulator, self.vision) if self.simulator is not None else None,
         }
 
         self.car_api = safe_globals['car']  # 保存 SafeCarAPI 引用，用于 stop 中设置标志

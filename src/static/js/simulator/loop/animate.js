@@ -7,6 +7,7 @@ import * as runtime from '../runtime.js';
 import { updateCarPositionSmooth } from '../car/smoothing.js';
 import { applyFreeCamMovement } from '../camera/freeCam.js';
 import { updateChunksByCarPosition } from '../map/chunkUpdate.js';
+import { updateObstacleProjection } from '../vision/obstacleProjector.js';
 import { shouldRender, updateFPS, resetRenderFlag } from './perf.js';
 
 // ===== 循线系统 Hook（可选，延迟加载） =====
@@ -53,14 +54,14 @@ function animate() {
 
     // 1. 平滑更新小车位置
     updateCarPositionSmooth();
-    
+
     // 2. 更新 Chunk
     updateChunksByCarPosition();
-    
+
     // 2.5 更新循线系统（如果启用）
     if (lineFollowerHookEnabled && lineFollowerModule) {
         lineFollowerModule.updateLineFollower();
-        
+
         // 更新探头可视化
         if (sensorVisualizerModule) {
             sensorVisualizerModule.updateSensorVisualizer();
@@ -81,6 +82,9 @@ function animate() {
     // 5. 检查相机是否移动
     cameraChanged = checkCameraChanged() || cameraChanged;
 
+    // 5.5 在车前视角下执行仿真真值投影，并同步绘制检测框。
+    updateObstacleProjection();
+
     // 6. 按需渲染
     if (shouldRender(cameraChanged)) {
         updateFPS();
@@ -100,7 +104,7 @@ function animate() {
 
 function checkCameraChanged() {
     if (!runtime.camera) return false;
-    
+
     const currentPos = runtime.camera.position.clone();
     const currentRot = runtime.camera.rotation.clone();
 
@@ -111,11 +115,11 @@ function checkCameraChanged() {
         Math.abs(currentRot.x - runtime.lastCameraRotation.x) > rotThreshold ||
         Math.abs(currentRot.y - runtime.lastCameraRotation.y) > rotThreshold ||
         Math.abs(currentRot.z - runtime.lastCameraRotation.z) > rotThreshold) {
-        
+
         runtime.lastCameraPosition.copy(currentPos);
         runtime.lastCameraRotation.copy(currentRot);
         return true;
     }
-    
+
     return false;
 }
