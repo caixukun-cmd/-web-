@@ -147,6 +147,9 @@ function handleWebSocketMessage(data, callbacks) {
         case 'experiment_state':
             if (callbacks.onExperimentState) callbacks.onExperimentState(data.state || {});
             break;
+        case 'experiment_config_applied':
+            if (callbacks.onExperimentConfigApplied) callbacks.onExperimentConfigApplied(data);
+            break;
         default:
             console.log('未知消息类型:', type, data);
     }

@@ -776,6 +776,219 @@
             background: var(--legend-color);
         }
 
+        .task-status-bar {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 10px;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.14), rgba(33, 150, 243, 0.08));
+            border-bottom: 1px solid #343434;
+            color: #dcdcdc;
+            font-size: 12px;
+        }
+
+        .task-status-item {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .task-status-label {
+            color: #9a9a9a;
+            margin-right: 4px;
+        }
+
+        .task-status-value {
+            color: #fff;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .task-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #ddd;
+            font-size: 11px;
+        }
+
+        .task-status-badge.running { color: #9fe7aa; border-color: rgba(159, 231, 170, 0.35); }
+        .task-status-badge.completed { color: #8bd5ff; border-color: rgba(139, 213, 255, 0.35); }
+        .task-status-badge.stopped { color: #ffd166; border-color: rgba(255, 209, 102, 0.35); }
+        .task-status-badge.failed { color: #ff8f8f; border-color: rgba(255, 143, 143, 0.35); }
+
+        .task-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2600;
+            padding: 18px;
+        }
+
+        .task-overlay.open {
+            display: flex;
+        }
+
+        .task-panel {
+            width: min(980px, calc(100vw - 36px));
+            max-height: min(720px, calc(100vh - 36px));
+            background: #1f2126;
+            color: #e5e5e5;
+            border: 1px solid rgba(120, 220, 150, 0.4);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .task-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.18), rgba(33, 150, 243, 0.10));
+        }
+
+        .task-panel-header h4 {
+            margin: 0;
+            color: #9fe7aa;
+            font-size: 15px;
+        }
+
+        .task-panel-close {
+            border: 1px solid #555;
+            background: #242424;
+            color: #ddd;
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .task-panel-body {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 12px;
+            padding: 12px;
+            overflow: auto;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .task-card h5 {
+            margin: 0 0 8px;
+            color: #8bd5ff;
+            font-size: 13px;
+        }
+
+        .task-form-field {
+            margin-bottom: 8px;
+        }
+
+        .task-form-field label {
+            display: block;
+            color: #aaa;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .task-form-field input,
+        .task-form-field select,
+        .task-form-field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            background: #16181d;
+            border: 1px solid #3d4048;
+            color: #eee;
+            border-radius: 7px;
+            padding: 7px 8px;
+            font-size: 12px;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 460px;
+            overflow: auto;
+        }
+
+        .task-list-item {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.035);
+            border-radius: 10px;
+            padding: 9px;
+        }
+
+        .task-list-item.active {
+            border-color: rgba(159, 231, 170, 0.55);
+            background: rgba(76, 175, 80, 0.10);
+        }
+
+        .task-list-title {
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .task-list-meta {
+            color: #aaa;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .task-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .task-detail-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            padding: 8px;
+            min-width: 0;
+        }
+
+        .task-detail-label {
+            color: #999;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .task-detail-value {
+            color: #fff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .task-empty {
+            color: #999;
+            border: 1px dashed #444;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            font-size: 12px;
+        }
+
         .loading {
             position: absolute;
             top: 50%;
@@ -811,11 +1024,19 @@
                         <option value="line_follow">自动循线演示</option>
                         <option value="platform_api">评测接口演示</option>
                     </select>
-                    <button class="btn btn-config" id="configBtn" onclick="toggleSimulationConfigPanel()">⚙ 仿真配置</button>
+                    <button class="btn btn-config" id="taskManagerBtn" onclick="toggleTaskManagerPanel()">📋 任务管理</button>
+                    <button class="btn btn-config" id="configBtn" onclick="toggleSimulationConfigPanel()">⚙ 实验配置</button>
                     <button class="btn btn-run" id="runBtn" onclick="runCode()">▶ 运行</button>
                     <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 终止</button>
                     <button class="btn btn-home" id="homeBtn" onclick="homeCar()" disabled>🏠 归位</button>
                 </div>
+            </div>
+            <div class="task-status-bar" id="currentTaskBar">
+                <div class="task-status-item"><span class="task-status-label">当前任务</span><span class="task-status-value" id="currentTaskName">未绑定</span></div>
+                <div class="task-status-item"><span class="task-status-label">状态</span><span class="task-status-badge" id="currentTaskStatus">未开始</span></div>
+                <div class="task-status-item"><span class="task-status-label">地图</span><span class="task-status-value" id="currentTaskMap">--</span></div>
+                <div class="task-status-item"><span class="task-status-label">记录</span><span class="task-status-value" id="currentTaskSamples">0</span></div>
+                <button class="btn-mini" type="button" onclick="openTaskManagerPanel()">打开任务列表</button>
             </div>
             <div id="editor"></div>
             <div class="console" id="console">
@@ -988,14 +1209,57 @@ await vision.get_evaluation()</code>
         </div>
     </div>
 
+    <div class="task-overlay" id="taskManagerOverlay" onclick="handleTaskManagerBackdrop(event)">
+        <div class="task-panel" role="dialog" aria-modal="true" aria-labelledby="taskManagerTitle">
+            <div class="task-panel-header">
+                <h4 id="taskManagerTitle">📋 仿真任务管理</h4>
+                <button class="task-panel-close" type="button" onclick="closeTaskManagerPanel()">关闭</button>
+            </div>
+            <div class="task-panel-body">
+                <div class="task-card">
+                    <h5>新建任务</h5>
+                    <div class="task-form-field">
+                        <label for="newTaskName">任务名称</label>
+                        <input id="newTaskName" type="text" placeholder="例如：速度60_PID默认测试">
+                    </div>
+                    <div class="task-form-field">
+                        <label for="newTaskMap">地图编码</label>
+                        <select id="newTaskMap">
+                            <option value="">沿用当前地图</option>
+                        </select>
+                    </div>
+                    <div class="task-form-field">
+                        <label for="newTaskNote">任务说明</label>
+                        <textarea id="newTaskNote" rows="3" placeholder="可填写实验目的或变量条件"></textarea>
+                    </div>
+                    <div class="experiment-actions">
+                        <button class="btn-mini" type="button" onclick="createSimulationTaskFromForm()">新建并绑定</button>
+                        <button class="btn-mini" type="button" onclick="saveCurrentTaskSnapshot('completed')">保存当前结果</button>
+                    </div>
+                </div>
+                <div class="task-card">
+                    <div class="experiment-panel-header">
+                        <h5 style="margin:0;">任务列表与详情</h5>
+                        <div class="experiment-actions">
+                            <button class="btn-mini" type="button" onclick="renderTaskManagerPanel()">刷新</button>
+                            <button class="btn-mini" type="button" onclick="clearFinishedSimulationTasks()">清理已删除</button>
+                        </div>
+                    </div>
+                    <div id="taskList" class="task-list"></div>
+                    <div id="taskDetail" style="margin-top:10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="simulation-config-overlay" id="simulationConfigOverlay" onclick="handleSimulationConfigBackdrop(event)">
         <div class="simulation-config-panel" role="dialog" aria-modal="true" aria-labelledby="simulationConfigTitle">
             <div class="simulation-config-header">
-                <h4 id="simulationConfigTitle">⚙ 仿真配置面板</h4>
+                <h4 id="simulationConfigTitle">⚙ 实验配置面板</h4>
                 <button class="simulation-config-close" type="button" onclick="closeSimulationConfigPanel()">关闭</button>
             </div>
             <div class="simulation-config-intro">
-                修改仿真参数，下拉保存配置
+                设置本次实验的默认条件。系统会把这些配置写入实验记录和导出文件；如果代码中显式传入速度、PID 或传感器参数，则以代码传参为准。
             </div>
             <form class="simulation-config-form" onsubmit="event.preventDefault();">
                 <div class="simulation-config-field">
@@ -1028,10 +1292,15 @@ await vision.get_evaluation()</code>
                     <input id="configSensorSpacing" type="number" step="0.01" min="0" placeholder="例如：0.25">
                     <div class="simulation-config-desc">相邻传感器之间的间隔。</div>
                 </div>
+                <div class="simulation-config-field">
+                    <label for="configSampleInterval">采样周期 sample_interval_ms</label>
+                    <input id="configSampleInterval" type="number" step="10" min="20" placeholder="例如：100">
+                    <div class="simulation-config-desc">实验记录的目标采样周期，仅作为实验条件写入记录；当前 WebSocket 推送约为 100ms。</div>
+                </div>
             </form>
             <div class="simulation-config-actions">
                 <button class="btn btn-stop" type="button" onclick="closeSimulationConfigPanel()">取消</button>
-                <button class="btn btn-config" type="button">保存配置</button>
+                <button class="btn btn-config" type="button" onclick="saveExperimentConfig()">保存配置</button>
             </div>
         </div>
     </div>
@@ -1112,7 +1381,7 @@ await vision.get_evaluation()</code>
             enableVisionFrameCapture,
             disableVisionFrameCapture,
             isVisionFrameCaptureEnabled
-        } from '/js/simulator.js?v=experiment-recording-20260603';
+        } from '/js/simulator.js?v=experiment-config-20260603';
         
         // 将模块函数暴露到全局作用域
         window.initScene = initScene;
@@ -1155,6 +1424,17 @@ await vision.get_evaluation()</code>
         window.clearExperimentRecords = clearExperimentRecords;
         window.showExperimentChartPopup = showExperimentChartPopup;
         window.closeExperimentChartPopup = closeExperimentChartPopup;
+        window.saveExperimentConfig = saveExperimentConfig;
+        window.loadExperimentConfigToForm = loadExperimentConfigToForm;
+        window.toggleTaskManagerPanel = toggleTaskManagerPanel;
+        window.openTaskManagerPanel = openTaskManagerPanel;
+        window.closeTaskManagerPanel = closeTaskManagerPanel;
+        window.handleTaskManagerBackdrop = handleTaskManagerBackdrop;
+        window.createSimulationTaskFromForm = createSimulationTaskFromForm;
+        window.bindSimulationTask = bindSimulationTask;
+        window.deleteSimulationTask = deleteSimulationTask;
+        window.saveCurrentTaskSnapshot = saveCurrentTaskSnapshot;
+        window.clearFinishedSimulationTasks = clearFinishedSimulationTasks;
 
         // 当前选中的地图ID
         let currentMapId = null;
@@ -1163,6 +1443,17 @@ await vision.get_evaluation()</code>
         let visionCaptureEnabled = false;
 
         let experimentRecords = [];
+        let experimentConfig = {
+            initial_speed: 60,
+            pid_kp: 2.0,
+            pid_ki: 0.0,
+            pid_kd: 0.3,
+            sensor_count: 5,
+            sensor_spacing: 0.15,
+            sample_interval_ms: 100,
+            code_args_priority: true,
+        };
+        let activeExperimentConfig = null;
         let isExperimentRecording = false;
         let experimentStartTimestamp = null;
         let experimentErrorSum = 0;
@@ -1172,6 +1463,19 @@ await vision.get_evaluation()</code>
         let experimentPathDistance = 0;
         let lastExperimentPoint = null;
         let lastExperimentState = null;
+        let simulationTasks = [];
+        let currentTaskId = null;
+        const SIMULATION_TASKS_STORAGE_KEY = 'icar_simulation_tasks';
+        const CURRENT_TASK_STORAGE_KEY = 'icar_current_simulation_task_id';
+        const taskStatusText = {
+            created: '未开始',
+            running: '运行中',
+            paused: '已暂停',
+            completed: '已完成',
+            stopped: '已终止',
+            failed: '异常终止',
+            reset: '已重置',
+        };
 
         function setApiPanelOpen(open) {
             const overlay = document.getElementById('apiOverlay');
@@ -1206,10 +1510,479 @@ await vision.get_evaluation()</code>
             const button = document.getElementById('configBtn');
             if (!overlay) return;
 
+            if (open) {
+                loadExperimentConfigToForm();
+            }
+
             overlay.classList.toggle('open', open);
             if (button) {
                 button.classList.toggle('active', open);
             }
+        }
+
+        function readConfigNumber(id, fallback, options = {}) {
+            const input = document.getElementById(id);
+            if (!input || input.value === '') return fallback;
+            const value = Number(input.value);
+            if (!Number.isFinite(value)) return fallback;
+            if (options.integer) return Math.max(options.min ?? value, Math.round(value));
+            return Math.max(options.min ?? value, value);
+        }
+
+        function loadExperimentConfigToForm() {
+            const setValue = (id, value) => {
+                const input = document.getElementById(id);
+                if (input) input.value = value;
+            };
+            setValue('configInitialSpeed', experimentConfig.initial_speed);
+            setValue('configPidKp', experimentConfig.pid_kp);
+            setValue('configPidKi', experimentConfig.pid_ki);
+            setValue('configPidKd', experimentConfig.pid_kd);
+            setValue('configSensorCount', experimentConfig.sensor_count);
+            setValue('configSensorSpacing', experimentConfig.sensor_spacing);
+            setValue('configSampleInterval', experimentConfig.sample_interval_ms);
+        }
+
+        function saveExperimentConfig() {
+            experimentConfig = {
+                initial_speed: readConfigNumber('configInitialSpeed', experimentConfig.initial_speed, { min: 0 }),
+                pid_kp: readConfigNumber('configPidKp', experimentConfig.pid_kp),
+                pid_ki: readConfigNumber('configPidKi', experimentConfig.pid_ki),
+                pid_kd: readConfigNumber('configPidKd', experimentConfig.pid_kd),
+                sensor_count: readConfigNumber('configSensorCount', experimentConfig.sensor_count, { min: 1, integer: true }),
+                sensor_spacing: readConfigNumber('configSensorSpacing', experimentConfig.sensor_spacing, { min: 0 }),
+                sample_interval_ms: readConfigNumber('configSampleInterval', experimentConfig.sample_interval_ms, { min: 20, integer: true }),
+                code_args_priority: true,
+            };
+            try {
+                localStorage.setItem('icar_experiment_config', JSON.stringify(experimentConfig));
+            } catch (error) {
+                console.warn('保存实验配置到 localStorage 失败:', error);
+            }
+            addConsoleLog(`实验默认配置已保存：speed=${experimentConfig.initial_speed}, PID=(${experimentConfig.pid_kp}, ${experimentConfig.pid_ki}, ${experimentConfig.pid_kd}), sensors=${experimentConfig.sensor_count}`, 'success');
+            const currentTask = getCurrentTask();
+            if (currentTask && currentTask.status === 'created') {
+                currentTask.parameters = cloneExperimentConfig();
+                persistSimulationTasks();
+                renderTaskManagerPanel();
+            }
+            applyExperimentConfigToBackend();
+            closeSimulationConfigPanel();
+        }
+
+        function loadExperimentConfigFromStorage() {
+            try {
+                const rawConfig = localStorage.getItem('icar_experiment_config');
+                if (!rawConfig) return;
+                const parsedConfig = JSON.parse(rawConfig);
+                experimentConfig = {
+                    ...experimentConfig,
+                    ...parsedConfig,
+                    code_args_priority: true,
+                };
+            } catch (error) {
+                console.warn('读取实验配置失败，使用默认配置:', error);
+            }
+        }
+
+        function applyExperimentConfigToBackend() {
+            if (!isWebSocketConnected()) {
+                addConsoleLog('实验配置已保存到本地；WebSocket 未连接，连接后将自动下发到后端', 'warning');
+                return false;
+            }
+            sendMessage({
+                type: 'set_experiment_config',
+                config: experimentConfig,
+            });
+            return true;
+        }
+
+        function getCurrentTask() {
+            return simulationTasks.find(task => String(task.id) === String(currentTaskId)) || null;
+        }
+
+        function persistSimulationTasks() {
+            try {
+                localStorage.setItem(SIMULATION_TASKS_STORAGE_KEY, JSON.stringify(simulationTasks));
+                currentTaskId ? localStorage.setItem(CURRENT_TASK_STORAGE_KEY, String(currentTaskId)) : localStorage.removeItem(CURRENT_TASK_STORAGE_KEY);
+            } catch (error) {
+                console.warn('保存仿真任务失败:', error);
+            }
+        }
+
+        async function taskApiRequest(path = '', options = {}) {
+            const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+            const token = localStorage.getItem('token');
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const response = await fetch(`/api/simulation/tasks${path}`, { ...options, headers });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP ${response.status}`);
+            }
+            return response.json();
+        }
+
+        function normalizeTaskFromApi(task) {
+            return {
+                id: task.id,
+                task_name: task.task_name,
+                map_id: task.map_id,
+                status: task.status || 'created',
+                parameters: task.parameters || {},
+                code_text: task.code_text || '',
+                note: task.note || '',
+                records: task.records || [],
+                result: task.result || null,
+                created_at: task.created_at,
+                updated_at: task.updated_at,
+                started_at: task.started_at,
+                finished_at: task.finished_at,
+            };
+        }
+
+        function loadSimulationTasksFromStorage() {
+            try {
+                const rawTasks = localStorage.getItem(SIMULATION_TASKS_STORAGE_KEY);
+                simulationTasks = rawTasks ? JSON.parse(rawTasks) : [];
+                currentTaskId = localStorage.getItem(CURRENT_TASK_STORAGE_KEY);
+                if (currentTaskId && !getCurrentTask()) currentTaskId = null;
+            } catch (error) {
+                console.warn('读取仿真任务失败:', error);
+                simulationTasks = [];
+                currentTaskId = null;
+            }
+            updateCurrentTaskBar();
+        }
+
+        async function loadSimulationTasksFromBackend() {
+            try {
+                const tasks = await taskApiRequest('');
+                simulationTasks = tasks.map(normalizeTaskFromApi);
+                if (currentTaskId && !getCurrentTask()) currentTaskId = simulationTasks[0]?.id || null;
+                persistSimulationTasks();
+                updateCurrentTaskBar();
+                renderTaskManagerPanel();
+                addConsoleLog(`已从 SQLite 加载 ${simulationTasks.length} 个仿真任务`, 'success');
+            } catch (error) {
+                console.warn('从后端加载任务失败，继续使用本地缓存:', error);
+                addConsoleLog('任务数据库暂不可用，已使用浏览器本地任务缓存', 'warning');
+            }
+        }
+
+        function cloneExperimentConfig() {
+            return JSON.parse(JSON.stringify(experimentConfig));
+        }
+
+        function generateTaskName() {
+            const stamp = new Date().toLocaleString('zh-CN', { hour12: false });
+            return `仿真任务_${currentMapId || '未选地图'}_${stamp}`;
+        }
+
+        function createSimulationTask({ name, mapId, note } = {}) {
+            const now = new Date().toISOString();
+            const task = {
+                id: Date.now(),
+                task_name: name || generateTaskName(),
+                map_id: mapId || currentMapId || document.getElementById('mapSelector')?.value || null,
+                status: 'created',
+                parameters: cloneExperimentConfig(),
+                code_text: editor ? editor.getValue() : '',
+                note: note || '',
+                records: [],
+                result: null,
+                created_at: now,
+                updated_at: now,
+                started_at: null,
+                finished_at: null,
+            };
+            simulationTasks.unshift(task);
+            currentTaskId = task.id;
+            persistSimulationTasks();
+            updateCurrentTaskBar();
+            renderTaskManagerPanel();
+            taskApiRequest('', {
+                method: 'POST',
+                body: JSON.stringify({
+                    task_name: task.task_name,
+                    map_id: task.map_id,
+                    status: task.status,
+                    note: task.note,
+                    code_text: task.code_text,
+                    parameters: task.parameters,
+                    records: task.records,
+                    result: task.result || {},
+                    started_at: task.started_at,
+                    finished_at: task.finished_at,
+                }),
+            }).then(savedTask => {
+                const index = simulationTasks.findIndex(item => String(item.id) === String(task.id));
+                const normalized = normalizeTaskFromApi(savedTask);
+                if (index >= 0) simulationTasks[index] = normalized;
+                if (String(currentTaskId) === String(task.id)) currentTaskId = normalized.id;
+                persistSimulationTasks();
+                updateCurrentTaskBar();
+                renderTaskManagerPanel();
+            }).catch(error => {
+                console.warn('任务写入 SQLite 失败，保留本地缓存:', error);
+                addConsoleLog('任务已保存到本地，但写入 SQLite 失败', 'warning');
+            });
+            addConsoleLog(`已新建并绑定任务：${task.task_name}`, 'success');
+            return task;
+        }
+
+        function ensureCurrentTask() {
+            return getCurrentTask() || createSimulationTask();
+        }
+
+        function setCurrentTaskStatus(status, extra = {}) {
+            const task = ensureCurrentTask();
+            const now = new Date().toISOString();
+            task.status = status;
+            task.updated_at = now;
+            if (status === 'running' && !task.started_at) task.started_at = now;
+            if (['completed', 'stopped', 'failed'].includes(status)) task.finished_at = now;
+            Object.assign(task, extra);
+            persistSimulationTasks();
+            updateCurrentTaskBar();
+            renderTaskManagerPanel();
+            return task;
+        }
+
+        function buildExperimentSummary(status = 'completed') {
+            const records = experimentRecords || [];
+            const duration = records.length ? Number(records[records.length - 1].t || 0) : 0;
+            const speeds = records.map(record => Number(record.speed)).filter(Number.isFinite);
+            const lineLostCount = records.reduce((count, record, index) => count + ((Boolean(record.line_lost) && !(index > 0 && Boolean(records[index - 1].line_lost))) ? 1 : 0), 0);
+            const finalRecord = records[records.length - 1] || {};
+            const finalProgress = Number(finalRecord.progress || 0);
+            return {
+                status,
+                duration,
+                path_length: normalizeNumber(experimentPathDistance, 4),
+                average_speed: speeds.length ? normalizeNumber(speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length, 3) : null,
+                max_speed: speeds.length ? normalizeNumber(Math.max(...speeds), 3) : null,
+                average_error: experimentErrorCount > 0 ? normalizeNumber(experimentErrorSum / experimentErrorCount, 4) : null,
+                max_error: experimentErrorCount > 0 ? normalizeNumber(experimentMaxError, 4) : null,
+                collision_count: Number(finalRecord.collision_count || 0),
+                line_lost_count: lineLostCount,
+                final_progress: normalizeNumber(finalProgress, 4),
+                success: status === 'completed' && finalProgress >= 0.95,
+                sample_count: records.length,
+            };
+        }
+
+        function saveCurrentTaskSnapshot(status = 'completed') {
+            const task = ensureCurrentTask();
+            task.parameters = activeExperimentConfig || cloneExperimentConfig();
+            task.map_id = currentMapId || task.map_id || null;
+            task.code_text = editor ? editor.getValue() : task.code_text;
+            task.records = JSON.parse(JSON.stringify(experimentRecords || []));
+            task.result = buildExperimentSummary(status);
+            setCurrentTaskStatus(status, { result: task.result, records: task.records });
+            taskApiRequest(`/${task.id}/snapshot`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    status,
+                    map_id: task.map_id,
+                    code_text: task.code_text,
+                    parameters: task.parameters,
+                    records: task.records,
+                    result: task.result,
+                    started_at: task.started_at,
+                    finished_at: task.finished_at,
+                }),
+            }).then(savedTask => {
+                const normalized = normalizeTaskFromApi(savedTask);
+                const index = simulationTasks.findIndex(item => String(item.id) === String(task.id));
+                if (index >= 0) simulationTasks[index] = normalized;
+                currentTaskId = normalized.id;
+                persistSimulationTasks();
+                updateCurrentTaskBar();
+                renderTaskManagerPanel();
+            }).catch(error => {
+                console.warn('任务快照写入 SQLite 失败，保留本地缓存:', error);
+                addConsoleLog('任务结果已保存到本地，但写入 SQLite 失败', 'warning');
+            });
+            addConsoleLog(`任务结果已保存：${task.task_name}（${task.result.sample_count} 条轨迹点）`, 'success');
+        }
+
+        function updateCurrentTaskBar() {
+            const task = getCurrentTask();
+            const nameEl = document.getElementById('currentTaskName');
+            const statusEl = document.getElementById('currentTaskStatus');
+            const mapEl = document.getElementById('currentTaskMap');
+            const samplesEl = document.getElementById('currentTaskSamples');
+            if (nameEl) nameEl.textContent = task ? task.task_name : '未绑定';
+            if (statusEl) {
+                const status = task?.status || 'created';
+                statusEl.textContent = task ? (taskStatusText[status] || status) : '未开始';
+                statusEl.className = `task-status-badge ${status}`;
+            }
+            if (mapEl) mapEl.textContent = task?.map_id || currentMapId || '--';
+            if (samplesEl) samplesEl.textContent = String(experimentRecords.length || task?.result?.sample_count || task?.records?.length || 0);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>\"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[char]));
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '--';
+            const date = new Date(value);
+            return Number.isNaN(date.getTime()) ? '--' : date.toLocaleString('zh-CN', { hour12: false });
+        }
+
+        function syncTaskMapOptions() {
+            const source = document.getElementById('mapSelector');
+            const target = document.getElementById('newTaskMap');
+            if (!source || !target) return;
+            const selected = target.value;
+            target.innerHTML = '<option value="">沿用当前地图</option>';
+            Array.from(source.options).forEach(option => {
+                if (!option.value) return;
+                const cloned = document.createElement('option');
+                cloned.value = option.value;
+                cloned.textContent = option.textContent;
+                target.appendChild(cloned);
+            });
+            target.value = selected;
+        }
+
+        function renderTaskManagerPanel() {
+            syncTaskMapOptions();
+            const listEl = document.getElementById('taskList');
+            if (!listEl) return;
+            if (!simulationTasks.length) {
+                listEl.innerHTML = '<div class="task-empty">暂无任务。可先新建任务，或直接运行代码后自动创建临时任务。</div>';
+                renderCurrentTaskDetail();
+                return;
+            }
+            listEl.innerHTML = simulationTasks.map(task => {
+                const sampleCount = task.result?.sample_count ?? task.records?.length ?? 0;
+                return `
+                    <div class="task-list-item ${String(task.id) === String(currentTaskId) ? 'active' : ''}">
+                        <div class="task-list-title">${escapeHtml(task.task_name)}</div>
+                        <div class="task-list-meta">状态：${taskStatusText[task.status] || task.status} · 地图：${task.map_id || '--'} · 轨迹点：${sampleCount}</div>
+                        <div class="task-list-meta">创建：${formatDateTime(task.created_at)}</div>
+                        <div class="experiment-actions" style="margin-top:7px;">
+                            <button class="btn-mini" type="button" onclick="bindSimulationTask(${task.id})">绑定</button>
+                            <button class="btn-mini" type="button" onclick="deleteSimulationTask(${task.id})">删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            renderCurrentTaskDetail();
+        }
+
+        function renderCurrentTaskDetail() {
+            const detailEl = document.getElementById('taskDetail');
+            const task = getCurrentTask();
+            if (!detailEl) return;
+            if (!task) {
+                detailEl.innerHTML = '<div class="task-empty">当前未绑定任务。</div>';
+                return;
+            }
+            const result = task.result || {};
+            const progressText = result.final_progress !== undefined && result.final_progress !== null ? `${(Number(result.final_progress) * 100).toFixed(1)}%` : '--';
+            detailEl.innerHTML = `
+                <div class="task-detail-grid">
+                    <div class="task-detail-item"><div class="task-detail-label">任务状态</div><div class="task-detail-value">${taskStatusText[task.status] || task.status}</div></div>
+                    <div class="task-detail-item"><div class="task-detail-label">运行时长</div><div class="task-detail-value">${result.duration ?? '--'}s</div></div>
+                    <div class="task-detail-item"><div class="task-detail-label">轨迹点数</div><div class="task-detail-value">${result.sample_count ?? task.records?.length ?? 0}</div></div>
+                    <div class="task-detail-item"><div class="task-detail-label">平均误差</div><div class="task-detail-value">${result.average_error ?? '--'}</div></div>
+                    <div class="task-detail-item"><div class="task-detail-label">最大误差</div><div class="task-detail-value">${result.max_error ?? '--'}</div></div>
+                    <div class="task-detail-item"><div class="task-detail-label">完成进度</div><div class="task-detail-value">${progressText}</div></div>
+                </div>
+            `;
+        }
+
+        function createSimulationTaskFromForm() {
+            const name = document.getElementById('newTaskName')?.value?.trim();
+            const mapId = document.getElementById('newTaskMap')?.value || currentMapId || null;
+            const note = document.getElementById('newTaskNote')?.value?.trim() || '';
+            const task = createSimulationTask({ name, mapId, note });
+            if (mapId && mapId !== currentMapId && isWebSocketConnected()) selectMap(mapId);
+            const nameInput = document.getElementById('newTaskName');
+            const noteInput = document.getElementById('newTaskNote');
+            if (nameInput) nameInput.value = '';
+            if (noteInput) noteInput.value = '';
+            return task;
+        }
+
+        function bindSimulationTask(taskId) {
+            const task = simulationTasks.find(item => String(item.id) === String(taskId));
+            if (!task) return;
+            if (isRunning) {
+                addConsoleLog('代码执行中，无法切换当前任务', 'warning');
+                return;
+            }
+            currentTaskId = task.id;
+            if (task.parameters) {
+                experimentConfig = { ...experimentConfig, ...task.parameters, code_args_priority: true };
+                loadExperimentConfigToForm();
+                applyExperimentConfigToBackend();
+            }
+            if (task.code_text && editor) editor.setValue(task.code_text);
+            if (task.map_id && task.map_id !== currentMapId && isWebSocketConnected()) selectMap(task.map_id);
+            persistSimulationTasks();
+            updateCurrentTaskBar();
+            renderTaskManagerPanel();
+            addConsoleLog(`已绑定任务：${task.task_name}`, 'success');
+        }
+
+        function deleteSimulationTask(taskId) {
+            const task = simulationTasks.find(item => String(item.id) === String(taskId));
+            if (!task) return;
+            if (String(task.id) === String(currentTaskId) && isRunning) {
+                addConsoleLog('当前任务运行中，不能删除', 'warning');
+                return;
+            }
+            if (!confirm(`确认删除任务「${task.task_name}」吗？`)) return;
+            simulationTasks = simulationTasks.filter(item => String(item.id) !== String(taskId));
+            if (String(currentTaskId) === String(taskId)) currentTaskId = null;
+            persistSimulationTasks();
+            taskApiRequest(`/${taskId}`, { method: 'DELETE' }).catch(error => {
+                console.warn('SQLite 删除任务失败，本地已删除:', error);
+            });
+            updateCurrentTaskBar();
+            renderTaskManagerPanel();
+            addConsoleLog('任务已删除', 'info');
+        }
+
+        function clearFinishedSimulationTasks() {
+            const before = simulationTasks.length;
+            simulationTasks = simulationTasks.filter(task => !['completed', 'stopped', 'failed'].includes(task.status));
+            if (currentTaskId && !getCurrentTask()) currentTaskId = null;
+            persistSimulationTasks();
+            updateCurrentTaskBar();
+            renderTaskManagerPanel();
+            addConsoleLog(`已清理 ${before - simulationTasks.length} 个历史任务`, 'info');
+        }
+
+        function setTaskManagerPanelOpen(open) {
+            const overlay = document.getElementById('taskManagerOverlay');
+            const button = document.getElementById('taskManagerBtn');
+            if (!overlay) return;
+            if (open) renderTaskManagerPanel();
+            overlay.classList.toggle('open', open);
+            if (button) button.classList.toggle('active', open);
+        }
+
+        function openTaskManagerPanel() {
+            setTaskManagerPanelOpen(true);
+        }
+
+        function closeTaskManagerPanel() {
+            setTaskManagerPanelOpen(false);
+        }
+
+        function toggleTaskManagerPanel() {
+            const overlay = document.getElementById('taskManagerOverlay');
+            setTaskManagerPanelOpen(!(overlay && overlay.classList.contains('open')));
+        }
+
+        function handleTaskManagerBackdrop(event) {
+            if (event.target && event.target.id === 'taskManagerOverlay') closeTaskManagerPanel();
         }
 
         function toggleSimulationConfigPanel() {
@@ -1389,6 +2162,7 @@ await vision.get_evaluation()</code>
                 onOpen: () => {
                     updateConnectionStatus(true);
                     addConsoleLog('WebSocket连接成功', 'success');
+                    applyExperimentConfigToBackend();
                 },
                 onStatus: (data) => {
                     updateStatus(data);
@@ -1400,27 +2174,31 @@ await vision.get_evaluation()</code>
                     updateConnectionStatus(false);
                     addConsoleLog('WebSocket连接错误: ' + error, 'error');
                     // 重置运行状态，确保按钮可用
+                    if (isRunning) setCurrentTaskStatus('failed');
                     isRunning = false;
                     document.getElementById('runBtn').disabled = false;
                     document.getElementById('stopBtn').disabled = true;
                     document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
                     document.getElementById('mapSelector').disabled = false;
                     stopExperimentRecording();
+                    if (getCurrentTask() && getCurrentTask().status === 'failed') saveCurrentTaskSnapshot('failed');
                 },
                 onClose: () => {
                     updateConnectionStatus(false);
                     addConsoleLog('WebSocket连接已关闭', 'info');
                     // 重置运行状态，确保按钮可用
+                    if (isRunning) setCurrentTaskStatus('failed');
                     isRunning = false;
                     document.getElementById('runBtn').disabled = false;
                     document.getElementById('stopBtn').disabled = true;
                     document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
                     document.getElementById('mapSelector').disabled = false;
                     stopExperimentRecording();
+                    if (getCurrentTask() && getCurrentTask().status === 'failed') saveCurrentTaskSnapshot('failed');
                 },
                 onComplete: (message) => {
                     addConsoleLog(message, 'success');
-                    stopCode();
+                    stopCode('completed');
                 },
                 // 新增：地图列表回调
                 onMapsList: (maps) => {
@@ -1432,6 +2210,15 @@ await vision.get_evaluation()</code>
                 },
                 onExperimentState: (state) => {
                     recordExperimentState(state);
+                },
+                onExperimentConfigApplied: (data) => {
+                    if (data.success && data.config) {
+                        experimentConfig = { ...experimentConfig, ...data.config, code_args_priority: true };
+                        loadExperimentConfigToForm();
+                        addConsoleLog('后端实验默认配置已更新，后续代码显式传参仍优先', 'success');
+                    } else {
+                        addConsoleLog('后端实验配置应用失败: ' + (data.message || '未知错误'), 'error');
+                    }
                 }
             });
         }
@@ -1476,6 +2263,13 @@ await vision.get_evaluation()</code>
 
         function startExperimentRecording() {
             experimentRecords = [];
+            activeExperimentConfig = {
+                ...experimentConfig,
+                map_id: currentMapId || null,
+                map_selector_value: document.getElementById('mapSelector')?.value || null,
+                started_at: new Date().toISOString(),
+                note: '实验配置作为默认条件记录；代码中显式传入的速度、PID 或传感器参数优先。',
+            };
             isExperimentRecording = true;
             experimentStartTimestamp = Date.now();
             experimentErrorSum = 0;
@@ -1546,6 +2340,14 @@ await vision.get_evaluation()</code>
             const record = {
                 t: normalizeNumber((Date.now() - experimentStartTimestamp) / 1000, 3),
                 timestamp: Date.now(),
+                config_initial_speed: activeExperimentConfig?.initial_speed ?? null,
+                config_pid_kp: activeExperimentConfig?.pid_kp ?? null,
+                config_pid_ki: activeExperimentConfig?.pid_ki ?? null,
+                config_pid_kd: activeExperimentConfig?.pid_kd ?? null,
+                config_sensor_count: activeExperimentConfig?.sensor_count ?? null,
+                config_sensor_spacing: activeExperimentConfig?.sensor_spacing ?? null,
+                config_sample_interval_ms: activeExperimentConfig?.sample_interval_ms ?? null,
+                config_code_args_priority: activeExperimentConfig?.code_args_priority ?? true,
                 map_id: state.map_id || currentMapId || null,
                 x: normalizeNumber(state.x, 3),
                 y: normalizeNumber(state.y, 3),
@@ -1578,6 +2380,7 @@ await vision.get_evaluation()</code>
 
             experimentRecords.push(record);
             updateExperimentPanel(record);
+            updateCurrentTaskBar();
         }
 
         function updateExperimentPanel(record = null) {
@@ -1607,6 +2410,7 @@ await vision.get_evaluation()</code>
 
         function clearExperimentRecords() {
             experimentRecords = [];
+            activeExperimentConfig = null;
             isExperimentRecording = false;
             experimentStartTimestamp = null;
             experimentErrorSum = 0;
@@ -1618,6 +2422,7 @@ await vision.get_evaluation()</code>
             lastExperimentState = null;
             closeExperimentChartPopup();
             updateExperimentPanel();
+            updateCurrentTaskBar();
             addConsoleLog('实验数据已清空', 'info');
         }
 
@@ -1643,7 +2448,11 @@ await vision.get_evaluation()</code>
                 addConsoleLog('暂无实验数据可导出', 'warning');
                 return;
             }
-            downloadTextFile(buildExperimentFileName('json'), JSON.stringify(experimentRecords, null, 2), 'application/json;charset=utf-8');
+            downloadTextFile(
+                buildExperimentFileName('json'),
+                JSON.stringify({ config: activeExperimentConfig || experimentConfig, records: experimentRecords }, null, 2),
+                'application/json;charset=utf-8'
+            );
             addConsoleLog('实验 JSON 已导出', 'success');
         }
 
@@ -1912,6 +2721,22 @@ await vision.get_evaluation()</code>
             }
         }
 
+        function buildExecutableCode(userCode) {
+            const config = activeExperimentConfig || experimentConfig;
+            const defaults = [
+                '# ===== 平台实验默认配置（代码显式传参优先）=====',
+                `DEFAULT_INITIAL_SPEED = ${Number(config.initial_speed)}`,
+                `DEFAULT_PID_KP = ${Number(config.pid_kp)}`,
+                `DEFAULT_PID_KI = ${Number(config.pid_ki)}`,
+                `DEFAULT_PID_KD = ${Number(config.pid_kd)}`,
+                `DEFAULT_SENSOR_COUNT = ${Number(config.sensor_count)}`,
+                `DEFAULT_SENSOR_SPACING = ${Number(config.sensor_spacing)}`,
+                '# 如果下方代码中显式传入 speed/kp/ki/kd/sensor 参数，则以代码传参为准。',
+                '',
+            ].join('\n');
+            return `${defaults}${userCode}`;
+        }
+
         // 运行代码
         function runCode() {
             if (!editor) {
@@ -1957,13 +2782,18 @@ await vision.get_evaluation()</code>
                         if (window.startPathRecording) {
                             window.startPathRecording();
                         }
+                        setCurrentTaskStatus('running', {
+                            map_id: currentMapId || document.getElementById('mapSelector')?.value || null,
+                            parameters: cloneExperimentConfig(),
+                            code_text: editor.getValue(),
+                        });
                         startExperimentRecording();
                         
                         addConsoleLog('开始执行代码...', 'info');
                         
                         sendMessage({
                             type: 'run_code',
-                            code: code
+                            code: buildExecutableCode(code)
                         });
                     }
                 }, 100); // 每100ms检查一次连接状态
@@ -1988,19 +2818,24 @@ await vision.get_evaluation()</code>
             if (window.startPathRecording) {
                 window.startPathRecording();
             }
+            setCurrentTaskStatus('running', {
+                map_id: currentMapId || document.getElementById('mapSelector')?.value || null,
+                parameters: cloneExperimentConfig(),
+                code_text: editor.getValue(),
+            });
             startExperimentRecording();
 
             addConsoleLog('开始执行代码...', 'info');
             
             sendMessage({
                 type: 'run_code',
-                code: code
+                code: buildExecutableCode(code)
             });
         }
 
         // 停止代码
-        function stopCode() {
-            if (isWebSocketConnected()) {
+        function stopCode(finalStatus = 'stopped') {
+            if (isWebSocketConnected() && finalStatus !== 'completed') {
                 sendMessage({ type: 'stop' });
             }
 
@@ -2015,8 +2850,9 @@ await vision.get_evaluation()</code>
                 window.stopPathRecording();
             }
             stopExperimentRecording();
+            saveCurrentTaskSnapshot(finalStatus);
             
-            addConsoleLog('已停止执行', 'info');
+            addConsoleLog(finalStatus === 'completed' ? '代码执行完成' : '已停止执行', finalStatus === 'completed' ? 'success' : 'info');
         }
 
         // 归位功能
@@ -2041,6 +2877,8 @@ await vision.get_evaluation()</code>
             
             // 归位完成后禁用按钮
             document.getElementById('homeBtn').disabled = true;
+            const currentTask = getCurrentTask();
+            if (currentTask && currentTask.status !== 'completed') setCurrentTaskStatus('reset');
             
             addConsoleLog('归位完成', 'success');
         }
@@ -2079,6 +2917,7 @@ await vision.get_evaluation()</code>
             }
             
             addConsoleLog(`已加载 ${maps.filter(m => m.available).length} 个可用地图`, 'info');
+            syncTaskMapOptions();
         }
         
         // 选择地图
@@ -2103,6 +2942,12 @@ await vision.get_evaluation()</code>
             }
             
             currentMapId = mapId;
+            const currentTask = getCurrentTask();
+            if (currentTask && currentTask.status === 'created') {
+                currentTask.map_id = mapId;
+                persistSimulationTasks();
+                updateCurrentTaskBar();
+            }
             addConsoleLog(`正在加载地图: ${mapId}...`, 'info');
             
             // 发送地图选择消息到后端
@@ -2214,16 +3059,16 @@ await vision.get_evaluation()</code>
                         'await car.init_line_following()\n' +
                         'await time.sleep(0.5)\n' +
                         '\n' +
-                        '# 3. 启用循线功能（设置 PID 参数）\n' +
+                        '# 3. 启用循线功能（使用实验默认 PID；如果此处显式写入数值，则以代码传参为准）\n' +
                         '# 参数说明: kp=比例系数, ki=积分系数, kd=微分系数, steering_scale=转向缩放\n' +
-                        'print("步骤3: 启用循线功能 (PID: Kp=1.0, Ki=0.0, Kd=0.1)...")\n' +
-                        'await car.enable_line_following(kp=1.0, ki=0.0, kd=0.1, steering_scale=45.0)\n' +
+                        'print(f"步骤3: 启用循线功能 (PID: Kp={DEFAULT_PID_KP}, Ki={DEFAULT_PID_KI}, Kd={DEFAULT_PID_KD})...")\n' +
+                        'await car.enable_line_following(kp=DEFAULT_PID_KP, ki=DEFAULT_PID_KI, kd=DEFAULT_PID_KD, steering_scale=45.0)\n' +
                         'await time.sleep(0.5)\n' +
                         '\n' +
                         '# 4. 小车前进，循线系统会自动调整方向\n' +
                         'print("步骤4: 小车开始循线行驶...")\n' +
                         'print("提示: 循线系统会根据探头读数自动调整转向")\n' +
-                        'car.forward(50, 50.0)  # 以50速度前进10秒\n' +
+                        'car.forward(DEFAULT_INITIAL_SPEED, 50.0)  # 使用实验默认速度；显式写入数字则以代码传参为准\n' +
                         'await car.wait()\n' +
                         '\n' +
                         '# 5. 停止并禁用循线\n' +
@@ -2251,7 +3096,7 @@ await vision.get_evaluation()</code>
                            '\n' +
                            'print("加载轨道并前进...")\n' +
                            'await car.load_demo_track()\n' +
-                           'car.forward(60, 3.0)\n' +
+                           'car.forward(DEFAULT_INITIAL_SPEED, 3.0)\n' +
                            'await car.wait()\n' +
                            '\n' +
                            'print("当前进度:")\n' +
@@ -2327,10 +3172,15 @@ await vision.get_evaluation()</code>
 
         // 页面加载时初始化
         window.addEventListener('DOMContentLoaded', () => {
+            loadExperimentConfigFromStorage();
+            loadExperimentConfigToForm();
+            loadSimulationTasksFromStorage();
+            loadSimulationTasksFromBackend();
             checkAuth();
             window.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
                     closeApiPanel();
+                    closeTaskManagerPanel();
                     closeSimulationConfigPanel();
                     closeGlossary();
                 }

@@ -75,11 +75,12 @@ class SafeCarAPI:
             return True
         return False
 
-    def forward(self, speed: float, duration: float = 2.0):
+    def forward(self, speed: float = None, duration: float = 2.0):
         if self._check_stopped():
             return
         self.car.move_forward(speed, duration)
-        self.log(f"小车前进，速度: {speed}, 持续时间: {duration}秒")
+        actual_speed = self.car.target_speed
+        self.log(f"小车前进，速度: {actual_speed}, 持续时间: {duration}秒")
 
     def backward(self, speed: float, duration: float = 2.0):
         if self._check_stopped():
@@ -162,7 +163,7 @@ class SafeCarAPI:
             return
         self.log("循线系统已就绪")
 
-    async def enable_line_following(self, kp: float = 1.0, ki: float = 0.0, kd: float = 0.1, steering_scale: float = 45.0):
+    async def enable_line_following(self, kp: float = None, ki: float = None, kd: float = None, steering_scale: float = 45.0):
         """
         启用循线功能
         
@@ -174,6 +175,9 @@ class SafeCarAPI:
         """
         if self._check_stopped():
             return
+        kp = self.car.default_pid_kp if kp is None else kp
+        ki = self.car.default_pid_ki if ki is None else ki
+        kd = self.car.default_pid_kd if kd is None else kd
         success = self.car.enable_line_following(kp, ki, kd, steering_scale)
         if success:
             self.log(f"已启用循线功能 (Kp={kp}, Ki={ki}, Kd={kd}, Scale={steering_scale})")
@@ -182,6 +186,13 @@ class SafeCarAPI:
                 await self.send_callback({'type': 'line_enable'})
         else:
             self.log("启用循线失败，请先加载轨道")
+
+    async def set_sensor_config(self, count: int = None, spacing: float = None):
+        """设置循线传感器数量和间距；显式调用优先于实验默认配置。"""
+        if self._check_stopped():
+            return
+        result = self.car.set_sensor_config(count=count, spacing=spacing)
+        self.log(f"已设置传感器配置: count={result['sensor_count']}, spacing={result['sensor_spacing']}")
 
     async def disable_line_following(self):
         """禁用循线功能"""

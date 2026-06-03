@@ -18,14 +18,14 @@
  */
 
 import * as runtime from './simulator/runtime.js';
-import { sendMessage as sendSocketMessage, connectWebSocket, isWebSocketConnected } from './simulator/net/wsClient.js?v=experiment-recording-20260603';
+import { sendMessage as sendSocketMessage, connectWebSocket, isWebSocketConnected } from './simulator/net/wsClient.js?v=experiment-config-20260603';
 
 // 场景
 export { initScene } from './simulator/scene/initScene.js';
 export { dispose } from './simulator/scene/dispose.js';
 
 // WebSocket
-export { connectWebSocket, isWebSocketConnected } from './simulator/net/wsClient.js?v=experiment-recording-20260603';
+export { connectWebSocket, isWebSocketConnected } from './simulator/net/wsClient.js?v=experiment-config-20260603';
 
 // 相机
 export { setCameraMode } from './simulator/camera/modes.js';

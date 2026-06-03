@@ -277,6 +277,28 @@ class Engine1Session:
         await self.send_message({'type': 'log', 'message': '循线功能已禁用', 'level': 'info'})
         await self.send_message({'type': 'line_disable'})
 
+    async def _handle_set_experiment_config(self, message: dict):
+        config = message.get('config', {})
+        try:
+            applied_config = self.simulator.car.apply_experiment_config(config)
+            await self.send_message({
+                'type': 'experiment_config_applied',
+                'success': True,
+                'config': applied_config,
+            })
+            await self.send_message({
+                'type': 'log',
+                'message': f"实验默认配置已生效: speed={applied_config['initial_speed']}, PID=({applied_config['pid_kp']}, {applied_config['pid_ki']}, {applied_config['pid_kd']}), sensors={applied_config['sensor_count']}",
+                'level': 'success',
+            })
+        except Exception as exc:
+            await self.send_message({
+                'type': 'experiment_config_applied',
+                'success': False,
+                'message': str(exc),
+            })
+            await self.send_message({'type': 'error', 'message': f'实验配置应用失败: {str(exc)}'})
+
     async def cleanup(self):
         if self.simulator_task and not self.simulator_task.done():
             self.simulator_task.cancel()

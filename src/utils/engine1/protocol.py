@@ -36,6 +36,7 @@ class MessageProtocol:
             
             # 循线相关
             'line_disable': self._handle_line_disable,
+            'set_experiment_config': self._handle_set_experiment_config,
         }
     
     async def route_message(self, session, message_str: str) -> bool:
@@ -102,6 +103,10 @@ class MessageProtocol:
     async def _handle_line_disable(self, session, message: dict):
         """处理循线禁用"""
         await session._handle_line_disable()
+    
+    async def _handle_set_experiment_config(self, session, message: dict):
+        """处理实验默认配置更新"""
+        await session._handle_set_experiment_config(message)
     
     async def _handle_reset(self, session, message: dict):
         """处理重置请求"""

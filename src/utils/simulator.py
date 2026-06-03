@@ -326,8 +326,68 @@ class VirtualCar:
         self.sensor_spacing: float = 0.15
         self.sensor_forward_offset: float = 0.6
 
-    def move_forward(self, speed: float, duration: float = 0.0):
+        # 实验默认配置。用户代码显式传参会覆盖这些默认值。
+        self.default_initial_speed: float = 60.0
+        self.default_pid_kp: float = self.pid_kp
+        self.default_pid_ki: float = self.pid_ki
+        self.default_pid_kd: float = self.pid_kd
+        self.experiment_config: Dict[str, Any] = {}
+
+    def apply_experiment_config(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """应用实验默认配置；显式代码调用仍可覆盖。"""
+        if not isinstance(config, dict):
+            config = {}
+
+        if 'initial_speed' in config and config['initial_speed'] is not None:
+            self.default_initial_speed = max(0.0, min(float(config['initial_speed']), self.max_speed))
+
+        if 'pid_kp' in config and config['pid_kp'] is not None:
+            self.default_pid_kp = float(config['pid_kp'])
+            self.pid_kp = self.default_pid_kp
+        if 'pid_ki' in config and config['pid_ki'] is not None:
+            self.default_pid_ki = float(config['pid_ki'])
+            self.pid_ki = self.default_pid_ki
+        if 'pid_kd' in config and config['pid_kd'] is not None:
+            self.default_pid_kd = float(config['pid_kd'])
+            self.pid_kd = self.default_pid_kd
+
+        self.set_sensor_config(
+            count=config.get('sensor_count'),
+            spacing=config.get('sensor_spacing')
+        )
+
+        self.experiment_config = {
+            'initial_speed': self.default_initial_speed,
+            'pid_kp': self.default_pid_kp,
+            'pid_ki': self.default_pid_ki,
+            'pid_kd': self.default_pid_kd,
+            'sensor_count': self.sensor_count,
+            'sensor_spacing': self.sensor_spacing,
+            'sample_interval_ms': config.get('sample_interval_ms', 100),
+            'code_args_priority': True,
+        }
+        return dict(self.experiment_config)
+
+    def set_sensor_config(self, count: Optional[int] = None, spacing: Optional[float] = None) -> Dict[str, Any]:
+        """设置循线传感器数量和间距。"""
+        if count is not None:
+            self.sensor_count = max(1, min(15, int(count)))
+            current_values = list(self.sensors.get('infrared', []))
+            if len(current_values) >= self.sensor_count:
+                self.sensors['infrared'] = current_values[:self.sensor_count]
+            else:
+                self.sensors['infrared'] = current_values + [0] * (self.sensor_count - len(current_values))
+        if spacing is not None:
+            self.sensor_spacing = max(0.0, float(spacing))
+        return {
+            'sensor_count': self.sensor_count,
+            'sensor_spacing': self.sensor_spacing,
+        }
+
+    def move_forward(self, speed: Optional[float] = None, duration: float = 0.0):
         """前进，duration=0表示持续运动直到stop"""
+        if speed is None:
+            speed = self.default_initial_speed
         speed = max(0, min(speed, self.max_speed))
         self.target_speed = speed
         self._start_motion(duration)
@@ -772,6 +832,12 @@ class VirtualCar:
             'track_loaded': bool(self.track_waypoints),
             'track_width': self.track_width,
             'track_error': track_error,
+            'default_initial_speed': self.default_initial_speed,
+            'default_pid_kp': self.default_pid_kp,
+            'default_pid_ki': self.default_pid_ki,
+            'default_pid_kd': self.default_pid_kd,
+            'sensor_count': self.sensor_count,
+            'sensor_spacing': self.sensor_spacing,
             'distance_to_goal': round(distance_to_goal, 3) if distance_to_goal is not None else None,
             'progress': self._estimate_progress(),
             'line_following_enabled': self.line_following_enabled,

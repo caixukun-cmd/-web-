@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import settings
 from database import engine, Base
-from api import auth_router, websocket_router
+from api import auth_router, websocket_router, simulation_tasks_router
 
 # 创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -36,6 +36,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(auth_router)
 app.include_router(websocket_router)
+app.include_router(simulation_tasks_router)
 
 # 挂载静态文件目录（JS/CSS等资源）
 static_dir = os.path.join(os.path.dirname(__file__), "static")
