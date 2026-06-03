@@ -306,6 +306,16 @@ class VirtualCar:
         self.pid_integral: float = 0.0
         self.pid_last_error: float = 0.0
         self.pid_max_integral: float = 5.0
+        self.last_track_error: Optional[float] = None
+        self.last_pid_error: float = 0.0
+        self.last_pid_output: float = 0.0
+        self.last_pid_p: float = 0.0
+        self.last_pid_i: float = 0.0
+        self.last_pid_d: float = 0.0
+        self.last_steering: float = 0.0
+        self.last_line_state: str = self.lf_state.name
+        self.last_line_lost: bool = True
+        self.last_sensor_readings: List[int] = []
         
         # 低通滤波状态
         self.filtered_error: float = 0.0
@@ -497,6 +507,9 @@ class VirtualCar:
         
         # 2. 计算循线误差
         raw_error, line_lost = self._calculate_line_error(sensor_readings)
+        self.last_sensor_readings = list(sensor_readings)
+        self.last_pid_error = raw_error
+        self.last_line_lost = line_lost
         
         # 3. 更新搜索方向（仅在检测到线时更新）
         if not line_lost:
@@ -560,6 +573,8 @@ class VirtualCar:
             self.rotation += 360
         
         # 调试信息
+        self.last_steering = steering
+        self.last_line_state = self.lf_state.name
         state_name = self.lf_state.name
         print(f"[DBG] state={state_name} sensors={sensor_readings} err={round(raw_error, 3)} steer={round(steering, 1)} dir={self.search_dir}")
     
@@ -677,7 +692,13 @@ class VirtualCar:
         self.pid_last_error = error
 
         output = p_term + i_term + d_term
-        return output * self.steering_scale
+        steering_output = output * self.steering_scale
+        self.last_pid_error = error
+        self.last_pid_p = p_term
+        self.last_pid_i = i_term
+        self.last_pid_d = d_term
+        self.last_pid_output = steering_output
+        return steering_output
 
     def get_position(self) -> Dict[str, float]:
         return {
@@ -735,6 +756,9 @@ class VirtualCar:
 
     def get_env_state(self) -> Dict[str, Any]:
         distance_to_goal = self._distance_to_goal()
+        nearest_track_dist = self._nearest_track_distance()
+        track_error = round(nearest_track_dist, 4) if nearest_track_dist != float('inf') else None
+        self.last_track_error = track_error
         return {
             'x': round(self.x, 2),
             'y': round(self.y, 2),
@@ -747,9 +771,18 @@ class VirtualCar:
             'map_id': self.current_map_id,
             'track_loaded': bool(self.track_waypoints),
             'track_width': self.track_width,
+            'track_error': track_error,
             'distance_to_goal': round(distance_to_goal, 3) if distance_to_goal is not None else None,
             'progress': self._estimate_progress(),
             'line_following_enabled': self.line_following_enabled,
+            'line_state': self.last_line_state,
+            'line_lost': self.last_line_lost,
+            'pid_error': round(self.last_pid_error, 4),
+            'pid_output': round(self.last_pid_output, 4),
+            'pid_p': round(self.last_pid_p, 4),
+            'pid_i': round(self.last_pid_i, 4),
+            'pid_d': round(self.last_pid_d, 4),
+            'steering': round(self.last_steering, 4),
             'sensors': dict(self.sensors),
         }
 
@@ -774,6 +807,16 @@ class VirtualCar:
         self.pid_integral = 0.0
         self.pid_last_error = 0.0
         self.filtered_error = 0.0
+        self.last_track_error = None
+        self.last_pid_error = 0.0
+        self.last_pid_output = 0.0
+        self.last_pid_p = 0.0
+        self.last_pid_i = 0.0
+        self.last_pid_d = 0.0
+        self.last_steering = 0.0
+        self.last_line_state = self.lf_state.name
+        self.last_line_lost = True
+        self.last_sensor_readings = []
         self.collision_count = 0
         self.last_collision = False
         self.out_of_bounds = False

@@ -147,6 +147,15 @@
             cursor: not-allowed;
         }
 
+        .btn-config {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-config:hover {
+            background: #1976D2;
+        }
+
 
         select {
             padding: 6px;
@@ -238,47 +247,169 @@
             color: #ddd;
         }
 
-        .api-panel {
-            background: linear-gradient(180deg, #181818 0%, #111111 100%);
-            border-top: 1px solid #333;
-            padding: 12px 14px;
-            height: 190px;
-            min-height: 120px;
-            max-height: 45vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .api-panel-resizer {
-            height: 10px;
-            cursor: row-resize;
-            background: linear-gradient(90deg, rgba(255,255,255,0.08) 0%, rgba(76,175,80,0.35) 50%, rgba(255,255,255,0.08) 100%);
-            border-top: 1px solid #2a2a2a;
-            border-bottom: 1px solid #252525;
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .api-panel-resizer::after {
-            content: '↕ 拖动调整 API 面板高度';
-            position: absolute;
-            top: -1px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            color: #9aa09a;
-            background: #161616;
-            padding: 0 8px;
-            line-height: 10px;
-        }
-
-        .api-panel h4 {
-            color: #f5f5f5;
-            font-size: 13px;
-            margin-bottom: 10px;
+        .api-toggle-group {
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .api-toggle-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid rgba(159, 231, 170, 0.45);
+            background: rgba(76, 175, 80, 0.14);
+            color: #c9ffd1;
+            border-radius: 50%;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .api-toggle-btn:hover,
+        .api-toggle-btn.active {
+            background: rgba(76, 175, 80, 0.32);
+            border-color: rgba(159, 231, 170, 0.8);
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(76, 175, 80, 0.24);
+        }
+
+        .api-overlay,
+        .simulation-config-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.46);
+            backdrop-filter: blur(4px);
+            z-index: 1800;
+            padding: 24px;
+        }
+
+        .api-overlay.open,
+        .simulation-config-overlay.open {
+            display: flex;
+        }
+
+        .api-panel,
+        .simulation-config-panel {
+            width: min(860px, 92vw);
+            max-height: min(78vh, 720px);
+            overflow-y: auto;
+            background: rgba(17, 17, 17, 0.86);
+            border: 1px solid rgba(159, 231, 170, 0.22);
+            border-radius: 16px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+            padding: 16px;
+            position: relative;
+        }
+
+        .api-panel-header,
+        .simulation-config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .api-panel h4,
+        .simulation-config-header h4 {
+            color: #f5f5f5;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .api-panel-close,
+        .simulation-config-close {
+            border: 1px solid #444;
+            background: rgba(36, 36, 36, 0.88);
+            color: #ddd;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .api-panel-close:hover,
+        .simulation-config-close:hover {
+            background: rgba(50, 50, 50, 0.95);
+            color: #ffffff;
+        }
+
+        .simulation-config-intro {
+            color: #aeb7c2;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .simulation-config-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .simulation-config-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 11px;
+        }
+
+        .simulation-config-field label {
+            color: #f5f5f5;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .simulation-config-field input,
+        .simulation-config-field select {
+            width: 100%;
+            margin: 0;
+            padding: 8px 10px;
+            background: rgba(20, 20, 20, 0.92);
+            color: #ffffff;
+            border: 1px solid #3e3e3e;
+            border-radius: 7px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .simulation-config-field input:focus,
+        .simulation-config-field select:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.18);
+        }
+
+        .simulation-config-desc {
+            color: #8d99a6;
+            font-size: 11px;
+            line-height: 1.45;
+        }
+
+        .simulation-config-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .simulation-config-actions .btn {
+            padding: 7px 18px;
+        }
+
+        @media (max-width: 900px) {
+            .simulation-config-form {
+                grid-template-columns: 1fr;
+            }
         }
 
         .api-grid {
@@ -288,8 +419,8 @@
         }
 
         .api-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid #2f2f2f;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-left: 3px solid #4CAF50;
             border-radius: 8px;
             padding: 10px;
@@ -327,7 +458,7 @@
         }
 
         .api-card-desc {
-            color: #b9b9b9;
+            color: #c8c8c8;
             font-size: 11px;
             line-height: 1.5;
             margin-bottom: 6px;
@@ -344,9 +475,15 @@
 
         .api-tips {
             margin-top: 10px;
-            color: #8e8e8e;
+            color: #a6a6a6;
             font-size: 11px;
             line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .glossary-modal {
@@ -458,6 +595,187 @@
             color: #4CAF50;
         }
 
+        .experiment-panel {
+            background: #202020;
+            border-top: 1px solid #3e3e3e;
+            padding: 8px 10px;
+            color: #d8d8d8;
+            font-size: 12px;
+        }
+
+        .experiment-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .experiment-panel-title {
+            color: #9fe7aa;
+            font-weight: 700;
+        }
+
+        .experiment-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn-mini {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #2d2d2d;
+            color: #ddd;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .btn-mini:hover {
+            background: #383838;
+        }
+
+        .experiment-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .experiment-metric {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 6px;
+            min-width: 0;
+        }
+
+        .experiment-metric-label {
+            color: #999;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .experiment-metric-value {
+            color: #fff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .experiment-chart-popup {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            width: min(720px, calc(100vw - 36px));
+            max-height: min(620px, calc(100vh - 36px));
+            background: rgba(22, 24, 28, 0.98);
+            border: 1px solid rgba(120, 220, 150, 0.45);
+            border-radius: 14px;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+            z-index: 3000;
+            overflow: hidden;
+            display: none;
+            color: #e8e8e8;
+        }
+
+        .experiment-chart-popup.open {
+            display: block;
+        }
+
+        .experiment-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.18), rgba(33, 150, 243, 0.10));
+        }
+
+        .experiment-chart-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #9fe7aa;
+        }
+
+        .experiment-chart-close {
+            border: 1px solid #555;
+            background: #242424;
+            color: #ddd;
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .experiment-chart-close:hover {
+            background: #333;
+        }
+
+        .experiment-chart-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            padding: 10px 12px 4px;
+        }
+
+        .experiment-chart-summary-item {
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 9px;
+            padding: 8px;
+            min-width: 0;
+        }
+
+        .experiment-chart-summary-label {
+            color: #9a9a9a;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .experiment-chart-summary-value {
+            color: #ffffff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .experiment-chart-body {
+            padding: 8px 12px 14px;
+        }
+
+        .experiment-chart-canvas {
+            width: 100%;
+            height: 320px;
+            display: block;
+            background: #101216;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+        }
+
+        .experiment-chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+            color: #bdbdbd;
+            font-size: 11px;
+        }
+
+        .experiment-chart-legend span::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+            vertical-align: -1px;
+            background: var(--legend-color);
+        }
+
         .loading {
             position: absolute;
             top: 50%;
@@ -481,7 +799,10 @@
         <!-- 左侧：代码编辑器 -->
         <div class="left-panel">
             <div class="editor-header">
-                <h3>💻 代码编辑器 (Python)</h3>
+                <div class="api-toggle-group">
+                    <h3>💻 代码编辑器 (Python)</h3>
+                    <button class="api-toggle-btn" id="apiToggleBtn" type="button" onclick="toggleApiPanel()" title="打开/关闭平台 API 说明" aria-label="打开或关闭平台 API 说明" aria-expanded="false">?</button>
+                </div>
                 <div class="editor-controls">
                     <select id="exampleSelector" onchange="loadExampleCode()" style="padding: 6px; margin-right: 10px; background: #2d2d2d; color: white; border: 1px solid #3e3e3e; border-radius: 4px;">
                         <option value="basic">基本移动演示</option>
@@ -490,6 +811,7 @@
                         <option value="line_follow">自动循线演示</option>
                         <option value="platform_api">评测接口演示</option>
                     </select>
+                    <button class="btn btn-config" id="configBtn" onclick="toggleSimulationConfigPanel()">⚙ 仿真配置</button>
                     <button class="btn btn-run" id="runBtn" onclick="runCode()">▶ 运行</button>
                     <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 终止</button>
                     <button class="btn btn-home" id="homeBtn" onclick="homeCar()" disabled>🏠 归位</button>
@@ -500,9 +822,58 @@
                 <div class="console-line info">欢迎使用智能小车模拟仿真系统</div>
                 <div class="console-line info">在左侧编辑器中编写代码，点击"运行"按钮查看小车运行效果</div>
             </div>
-            <div class="api-panel-resizer" id="apiPanelResizer" title="拖动调整 API 说明面板高度"></div>
-            <div class="api-panel" id="apiPanel">
-                <h4>📘 平台 API 说明面板</h4>
+            <div class="experiment-panel" id="experimentPanel">
+                <div class="experiment-panel-header">
+                    <div class="experiment-panel-title">实验数据记录</div>
+                    <div class="experiment-actions">
+                        <button class="btn-mini" type="button" onclick="exportExperimentCSV()">导出 CSV</button>
+                        <button class="btn-mini" type="button" onclick="exportExperimentJSON()">导出 JSON</button>
+                        <button class="btn-mini" type="button" onclick="clearExperimentRecords()">清空</button>
+                    </div>
+                </div>
+                <div class="experiment-grid">
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">记录条数</div>
+                        <div class="experiment-metric-value" id="experimentRecordCount">0</div>
+                    </div>
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">当前误差</div>
+                        <div class="experiment-metric-value" id="experimentCurrentError">--</div>
+                    </div>
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">平均误差</div>
+                        <div class="experiment-metric-value" id="experimentAvgError">--</div>
+                    </div>
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">最大误差</div>
+                        <div class="experiment-metric-value" id="experimentMaxError">--</div>
+                    </div>
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">完成进度</div>
+                        <div class="experiment-metric-value" id="experimentProgress">0%</div>
+                    </div>
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">碰撞次数</div>
+                        <div class="experiment-metric-value" id="experimentCollisionCount">0</div>
+                    </div>
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">循线状态</div>
+                        <div class="experiment-metric-value" id="experimentLineState">--</div>
+                    </div>
+                    <div class="experiment-metric">
+                        <div class="experiment-metric-label">PID 输出</div>
+                        <div class="experiment-metric-value" id="experimentPidOutput">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="api-overlay" id="apiOverlay" onclick="handleApiPanelBackdrop(event)">
+        <div class="api-panel" id="apiPanel" role="dialog" aria-modal="true" aria-labelledby="apiPanelTitle">
+            <div class="api-panel-header">
+                <h4 id="apiPanelTitle">📘 平台 API 说明面板</h4>
+                <button class="api-panel-close" type="button" onclick="closeApiPanel()">关闭</button>
+            </div>
                 <div class="api-grid">
                     <div class="api-card">
                         <div class="api-card-header">
@@ -567,8 +938,8 @@ await vision.get_evaluation()</code>
                 <div class="api-tips">
                     提示：想快速体验新接口，请在左上角示例代码里选择“评测接口演示”。如果要做算法评测，推荐先调用 `task.get_info()` 了解任务，再结合 `env` 与 `judge` 编写闭环逻辑。
                 </div>
-            </div>
         </div>
+    </div>
 
         <!-- 右侧：3D场景 -->
         <div class="right-panel">
@@ -617,6 +988,54 @@ await vision.get_evaluation()</code>
         </div>
     </div>
 
+    <div class="simulation-config-overlay" id="simulationConfigOverlay" onclick="handleSimulationConfigBackdrop(event)">
+        <div class="simulation-config-panel" role="dialog" aria-modal="true" aria-labelledby="simulationConfigTitle">
+            <div class="simulation-config-header">
+                <h4 id="simulationConfigTitle">⚙ 仿真配置面板</h4>
+                <button class="simulation-config-close" type="button" onclick="closeSimulationConfigPanel()">关闭</button>
+            </div>
+            <div class="simulation-config-intro">
+                修改仿真参数，下拉保存配置
+            </div>
+            <form class="simulation-config-form" onsubmit="event.preventDefault();">
+                <div class="simulation-config-field">
+                    <label for="configInitialSpeed">初始速度 initial_speed</label>
+                    <input id="configInitialSpeed" type="number" step="0.1" min="0" placeholder="例如：60.0">
+                    <div class="simulation-config-desc">小车进入仿真时的默认速度。</div>
+                </div>
+                <div class="simulation-config-field">
+                    <label for="configPidKp">PID 比例系数 Pid_kp</label>
+                    <input id="configPidKp" type="number" step="0.01" placeholder="例如：1.00">
+                    <div class="simulation-config-desc">循线控制中的比例项参数。</div>
+                </div>
+                <div class="simulation-config-field">
+                    <label for="configPidKi">PID 积分系数 Pid_ki</label>
+                    <input id="configPidKi" type="number" step="0.01" placeholder="例如：0.00">
+                    <div class="simulation-config-desc">循线控制中的积分项参数。</div>
+                </div>
+                <div class="simulation-config-field">
+                    <label for="configPidKd">PID 微分系数 Pid_kd</label>
+                    <input id="configPidKd" type="number" step="0.01" placeholder="例如：0.10">
+                    <div class="simulation-config-desc">循线控制中的微分项参数。</div>
+                </div>
+                <div class="simulation-config-field">
+                    <label for="configSensorCount">传感器数量 sensor_count</label>
+                    <input id="configSensorCount" type="number" min="1" step="1" placeholder="例如：5">
+                    <div class="simulation-config-desc">红外或视觉等传感器的配置数量。</div>
+                </div>
+                <div class="simulation-config-field">
+                    <label for="configSensorSpacing">传感器间距 sensor_spacing</label>
+                    <input id="configSensorSpacing" type="number" step="0.01" min="0" placeholder="例如：0.25">
+                    <div class="simulation-config-desc">相邻传感器之间的间隔。</div>
+                </div>
+            </form>
+            <div class="simulation-config-actions">
+                <button class="btn btn-stop" type="button" onclick="closeSimulationConfigPanel()">取消</button>
+                <button class="btn btn-config" type="button">保存配置</button>
+            </div>
+        </div>
+    </div>
+
     <div class="glossary-modal" id="glossaryModal" onclick="handleGlossaryBackdrop(event)">
         <div class="glossary-dialog" role="dialog" aria-modal="true" aria-labelledby="glossaryTitle">
             <div class="glossary-dialog-header">
@@ -625,6 +1044,40 @@ await vision.get_evaluation()</code>
             </div>
             <div class="glossary-intro" id="glossaryIntro"></div>
             <div class="glossary-list" id="glossaryList"></div>
+        </div>
+    </div>
+
+    <div class="experiment-chart-popup" id="experimentChartPopup" role="dialog" aria-modal="false" aria-labelledby="experimentChartTitle">
+        <div class="experiment-chart-header">
+            <div class="experiment-chart-title" id="experimentChartTitle">实验结果曲线</div>
+            <button class="experiment-chart-close" type="button" onclick="closeExperimentChartPopup()">关闭</button>
+        </div>
+        <div class="experiment-chart-summary">
+            <div class="experiment-chart-summary-item">
+                <div class="experiment-chart-summary-label">记录条数</div>
+                <div class="experiment-chart-summary-value" id="chartSummaryCount">0</div>
+            </div>
+            <div class="experiment-chart-summary-item">
+                <div class="experiment-chart-summary-label">平均误差</div>
+                <div class="experiment-chart-summary-value" id="chartSummaryAvgError">--</div>
+            </div>
+            <div class="experiment-chart-summary-item">
+                <div class="experiment-chart-summary-label">最大误差</div>
+                <div class="experiment-chart-summary-value" id="chartSummaryMaxError">--</div>
+            </div>
+            <div class="experiment-chart-summary-item">
+                <div class="experiment-chart-summary-label">累计轨迹</div>
+                <div class="experiment-chart-summary-value" id="chartSummaryPathDistance">--</div>
+            </div>
+        </div>
+        <div class="experiment-chart-body">
+            <canvas class="experiment-chart-canvas" id="experimentChartCanvas" width="680" height="320"></canvas>
+            <div class="experiment-chart-legend">
+                <span style="--legend-color:#ff7676">轨迹误差</span>
+                <span style="--legend-color:#64b5f6">速度</span>
+                <span style="--legend-color:#81c784">完成进度</span>
+                <span style="--legend-color:#ffd166">累计轨迹距离</span>
+            </div>
         </div>
     </div>
 
@@ -659,7 +1112,7 @@ await vision.get_evaluation()</code>
             enableVisionFrameCapture,
             disableVisionFrameCapture,
             isVisionFrameCaptureEnabled
-        } from '/js/simulator.js';
+        } from '/js/simulator.js?v=experiment-recording-20260603';
         
         // 将模块函数暴露到全局作用域
         window.initScene = initScene;
@@ -688,16 +1141,91 @@ await vision.get_evaluation()</code>
         window.loadExampleCode = loadExampleCode;
         window.selectMap = selectMap;  // 新增：地图选择函数
         window.toggleVisionCapture = toggleVisionCapture;
+        window.toggleApiPanel = toggleApiPanel;
+        window.closeApiPanel = closeApiPanel;
+        window.handleApiPanelBackdrop = handleApiPanelBackdrop;
+        window.toggleSimulationConfigPanel = toggleSimulationConfigPanel;
+        window.closeSimulationConfigPanel = closeSimulationConfigPanel;
+        window.handleSimulationConfigBackdrop = handleSimulationConfigBackdrop;
         window.openGlossary = openGlossary;
         window.closeGlossary = closeGlossary;
         window.handleGlossaryBackdrop = handleGlossaryBackdrop;
+        window.exportExperimentCSV = exportExperimentCSV;
+        window.exportExperimentJSON = exportExperimentJSON;
+        window.clearExperimentRecords = clearExperimentRecords;
+        window.showExperimentChartPopup = showExperimentChartPopup;
+        window.closeExperimentChartPopup = closeExperimentChartPopup;
 
         // 当前选中的地图ID
         let currentMapId = null;
         
         // 当前视觉采集是否启用（用于按钮展示状态）
         let visionCaptureEnabled = false;
-        let apiPanelResizeState = null;
+
+        let experimentRecords = [];
+        let isExperimentRecording = false;
+        let experimentStartTimestamp = null;
+        let experimentErrorSum = 0;
+        let experimentErrorSquaredSum = 0;
+        let experimentErrorCount = 0;
+        let experimentMaxError = 0;
+        let experimentPathDistance = 0;
+        let lastExperimentPoint = null;
+        let lastExperimentState = null;
+
+        function setApiPanelOpen(open) {
+            const overlay = document.getElementById('apiOverlay');
+            const button = document.getElementById('apiToggleBtn');
+            if (!overlay) return;
+
+            overlay.classList.toggle('open', open);
+            if (button) {
+                button.classList.toggle('active', open);
+                button.setAttribute('aria-expanded', String(open));
+                button.title = open ? '关闭平台 API 说明' : '打开平台 API 说明';
+            }
+        }
+
+        function toggleApiPanel() {
+            const overlay = document.getElementById('apiOverlay');
+            setApiPanelOpen(!(overlay && overlay.classList.contains('open')));
+        }
+
+        function closeApiPanel() {
+            setApiPanelOpen(false);
+        }
+
+        function handleApiPanelBackdrop(event) {
+            if (event.target && event.target.id === 'apiOverlay') {
+                closeApiPanel();
+            }
+        }
+
+        function setSimulationConfigPanelOpen(open) {
+            const overlay = document.getElementById('simulationConfigOverlay');
+            const button = document.getElementById('configBtn');
+            if (!overlay) return;
+
+            overlay.classList.toggle('open', open);
+            if (button) {
+                button.classList.toggle('active', open);
+            }
+        }
+
+        function toggleSimulationConfigPanel() {
+            const overlay = document.getElementById('simulationConfigOverlay');
+            setSimulationConfigPanelOpen(!(overlay && overlay.classList.contains('open')));
+        }
+
+        function closeSimulationConfigPanel() {
+            setSimulationConfigPanelOpen(false);
+        }
+
+        function handleSimulationConfigBackdrop(event) {
+            if (event.target && event.target.id === 'simulationConfigOverlay') {
+                closeSimulationConfigPanel();
+            }
+        }
 
         const glossaryData = {
             judge: {
@@ -876,6 +1404,8 @@ await vision.get_evaluation()</code>
                     document.getElementById('runBtn').disabled = false;
                     document.getElementById('stopBtn').disabled = true;
                     document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
+                    document.getElementById('mapSelector').disabled = false;
+                    stopExperimentRecording();
                 },
                 onClose: () => {
                     updateConnectionStatus(false);
@@ -885,6 +1415,8 @@ await vision.get_evaluation()</code>
                     document.getElementById('runBtn').disabled = false;
                     document.getElementById('stopBtn').disabled = true;
                     document.getElementById('homeBtn').disabled = false;  // 暂停状态下启用归位按钮
+                    document.getElementById('mapSelector').disabled = false;
+                    stopExperimentRecording();
                 },
                 onComplete: (message) => {
                     addConsoleLog(message, 'success');
@@ -897,6 +1429,9 @@ await vision.get_evaluation()</code>
                 // 新增：轨道加载完成回调
                 onTrackLoaded: (trackData) => {
                     addConsoleLog(`轨道已加载: ${trackData.name || trackData._mapId}`, 'success');
+                },
+                onExperimentState: (state) => {
+                    recordExperimentState(state);
                 }
             });
         }
@@ -937,6 +1472,326 @@ await vision.get_evaluation()</code>
             line.textContent = `[${timestamp}] ${message}`;
             consoleEl.appendChild(line);
             consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function startExperimentRecording() {
+            experimentRecords = [];
+            isExperimentRecording = true;
+            experimentStartTimestamp = Date.now();
+            experimentErrorSum = 0;
+            experimentErrorSquaredSum = 0;
+            experimentErrorCount = 0;
+            experimentMaxError = 0;
+            experimentPathDistance = 0;
+            lastExperimentPoint = null;
+            lastExperimentState = null;
+            closeExperimentChartPopup();
+            updateExperimentPanel();
+            addConsoleLog('实验数据记录已开始', 'info');
+        }
+
+        function stopExperimentRecording() {
+            if (!isExperimentRecording) return;
+            isExperimentRecording = false;
+            updateExperimentPanel();
+            addConsoleLog(`实验数据记录已停止，共记录 ${experimentRecords.length} 条数据`, 'info');
+            showExperimentChartPopup();
+        }
+
+        function normalizeNumber(value, digits = 4) {
+            if (value === null || value === undefined || Number.isNaN(Number(value))) return null;
+            return Number(Number(value).toFixed(digits));
+        }
+
+        function recordExperimentState(state) {
+            lastExperimentState = state;
+            if (!isExperimentRecording || !state) {
+                updateExperimentPanel();
+                return;
+            }
+
+            if (!experimentStartTimestamp) {
+                experimentStartTimestamp = Date.now();
+            }
+
+            const x = normalizeNumber(state.x, 4);
+            const y = normalizeNumber(state.y, 4);
+            const currentPoint = x !== null && y !== null ? { x, y } : null;
+            let segmentDistance = 0;
+            if (currentPoint && lastExperimentPoint) {
+                const dx = currentPoint.x - lastExperimentPoint.x;
+                const dy = currentPoint.y - lastExperimentPoint.y;
+                segmentDistance = Math.sqrt(dx * dx + dy * dy);
+                if (Number.isFinite(segmentDistance) && segmentDistance < 10) {
+                    experimentPathDistance += segmentDistance;
+                } else {
+                    segmentDistance = 0;
+                }
+            }
+            if (currentPoint) {
+                lastExperimentPoint = currentPoint;
+            }
+
+            const trackError = normalizeNumber(state.track_error);
+            if (trackError !== null) {
+                experimentErrorSum += trackError;
+                experimentErrorSquaredSum += trackError * trackError;
+                experimentErrorCount += 1;
+                experimentMaxError = Math.max(experimentMaxError, trackError);
+            }
+
+            const avgTrackError = experimentErrorCount > 0 ? experimentErrorSum / experimentErrorCount : null;
+            const rmsTrackError = experimentErrorCount > 0 ? Math.sqrt(experimentErrorSquaredSum / experimentErrorCount) : null;
+
+            const record = {
+                t: normalizeNumber((Date.now() - experimentStartTimestamp) / 1000, 3),
+                timestamp: Date.now(),
+                map_id: state.map_id || currentMapId || null,
+                x: normalizeNumber(state.x, 3),
+                y: normalizeNumber(state.y, 3),
+                rotation: normalizeNumber(state.rotation, 3),
+                speed: normalizeNumber(state.speed, 3),
+                is_moving: Boolean(state.is_moving),
+                track_error: trackError,
+                avg_track_error: normalizeNumber(avgTrackError),
+                max_track_error: normalizeNumber(experimentMaxError),
+                rms_track_error: normalizeNumber(rmsTrackError),
+                segment_distance: normalizeNumber(segmentDistance, 4),
+                path_distance: normalizeNumber(experimentPathDistance, 4),
+                progress: normalizeNumber(state.progress),
+                distance_to_goal: normalizeNumber(state.distance_to_goal),
+                collision: Boolean(state.collision),
+                collision_count: Number(state.collision_count || 0),
+                out_of_bounds: Boolean(state.out_of_bounds),
+                line_following_enabled: Boolean(state.line_following_enabled),
+                line_state: state.line_state || null,
+                line_lost: Boolean(state.line_lost),
+                pid_error: normalizeNumber(state.pid_error),
+                pid_output: normalizeNumber(state.pid_output),
+                pid_p: normalizeNumber(state.pid_p),
+                pid_i: normalizeNumber(state.pid_i),
+                pid_d: normalizeNumber(state.pid_d),
+                steering: normalizeNumber(state.steering),
+                sensors: Array.isArray(state.sensors?.infrared) ? state.sensors.infrared.join('|') : '',
+                ultrasonic: normalizeNumber(state.sensors?.ultrasonic),
+            };
+
+            experimentRecords.push(record);
+            updateExperimentPanel(record);
+        }
+
+        function updateExperimentPanel(record = null) {
+            const latest = record || experimentRecords[experimentRecords.length - 1] || lastExperimentState || {};
+            const countEl = document.getElementById('experimentRecordCount');
+            const currentErrorEl = document.getElementById('experimentCurrentError');
+            const avgErrorEl = document.getElementById('experimentAvgError');
+            const maxErrorEl = document.getElementById('experimentMaxError');
+            const progressEl = document.getElementById('experimentProgress');
+            const collisionEl = document.getElementById('experimentCollisionCount');
+            const lineStateEl = document.getElementById('experimentLineState');
+            const pidOutputEl = document.getElementById('experimentPidOutput');
+
+            const avgError = experimentErrorCount > 0 ? experimentErrorSum / experimentErrorCount : null;
+            const currentError = latest.track_error ?? latest.trackError ?? null;
+            const progress = latest.progress !== undefined && latest.progress !== null ? Number(latest.progress) * 100 : null;
+
+            if (countEl) countEl.textContent = String(experimentRecords.length);
+            if (currentErrorEl) currentErrorEl.textContent = currentError !== null && currentError !== undefined ? Number(currentError).toFixed(4) : '--';
+            if (avgErrorEl) avgErrorEl.textContent = avgError !== null ? avgError.toFixed(4) : '--';
+            if (maxErrorEl) maxErrorEl.textContent = experimentErrorCount > 0 ? experimentMaxError.toFixed(4) : '--';
+            if (progressEl) progressEl.textContent = progress !== null ? `${progress.toFixed(1)}%` : '0%';
+            if (collisionEl) collisionEl.textContent = String(latest.collision_count ?? latest.collisionCount ?? 0);
+            if (lineStateEl) lineStateEl.textContent = latest.line_state || latest.lineState || '--';
+            if (pidOutputEl) pidOutputEl.textContent = latest.pid_output !== undefined && latest.pid_output !== null ? Number(latest.pid_output).toFixed(4) : '--';
+        }
+
+        function clearExperimentRecords() {
+            experimentRecords = [];
+            isExperimentRecording = false;
+            experimentStartTimestamp = null;
+            experimentErrorSum = 0;
+            experimentErrorSquaredSum = 0;
+            experimentErrorCount = 0;
+            experimentMaxError = 0;
+            experimentPathDistance = 0;
+            lastExperimentPoint = null;
+            lastExperimentState = null;
+            closeExperimentChartPopup();
+            updateExperimentPanel();
+            addConsoleLog('实验数据已清空', 'info');
+        }
+
+        function downloadTextFile(filename, content, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function buildExperimentFileName(ext) {
+            const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+            return `experiment_${stamp}.${ext}`;
+        }
+
+        function exportExperimentJSON() {
+            if (!experimentRecords.length) {
+                addConsoleLog('暂无实验数据可导出', 'warning');
+                return;
+            }
+            downloadTextFile(buildExperimentFileName('json'), JSON.stringify(experimentRecords, null, 2), 'application/json;charset=utf-8');
+            addConsoleLog('实验 JSON 已导出', 'success');
+        }
+
+        function exportExperimentCSV() {
+            if (!experimentRecords.length) {
+                addConsoleLog('暂无实验数据可导出', 'warning');
+                return;
+            }
+
+            const headers = Object.keys(experimentRecords[0]);
+            const escapeCSV = (value) => {
+                if (value === null || value === undefined) return '';
+                const text = String(value);
+                return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+            };
+            const rows = [headers.join(',')].concat(
+                experimentRecords.map(record => headers.map(key => escapeCSV(record[key])).join(','))
+            );
+            downloadTextFile(buildExperimentFileName('csv'), rows.join('\n'), 'text/csv;charset=utf-8');
+            addConsoleLog('实验 CSV 已导出', 'success');
+        }
+
+        function closeExperimentChartPopup() {
+            const popup = document.getElementById('experimentChartPopup');
+            if (popup) popup.classList.remove('open');
+        }
+
+        function showExperimentChartPopup() {
+            if (!experimentRecords.length) return;
+            const popup = document.getElementById('experimentChartPopup');
+            if (!popup) return;
+
+            updateExperimentChartSummary();
+            popup.classList.add('open');
+            window.requestAnimationFrame(drawExperimentChart);
+        }
+
+        function updateExperimentChartSummary() {
+            const latest = experimentRecords[experimentRecords.length - 1] || {};
+            const avgError = experimentErrorCount > 0 ? experimentErrorSum / experimentErrorCount : null;
+            const countEl = document.getElementById('chartSummaryCount');
+            const avgEl = document.getElementById('chartSummaryAvgError');
+            const maxEl = document.getElementById('chartSummaryMaxError');
+            const pathEl = document.getElementById('chartSummaryPathDistance');
+
+            if (countEl) countEl.textContent = String(experimentRecords.length);
+            if (avgEl) avgEl.textContent = avgError !== null ? avgError.toFixed(4) : '--';
+            if (maxEl) maxEl.textContent = experimentErrorCount > 0 ? experimentMaxError.toFixed(4) : '--';
+            if (pathEl) pathEl.textContent = latest.path_distance !== null && latest.path_distance !== undefined ? `${Number(latest.path_distance).toFixed(3)} m` : '--';
+        }
+
+        function drawExperimentChart() {
+            const canvas = document.getElementById('experimentChartCanvas');
+            if (!canvas || !experimentRecords.length) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+            canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const width = rect.width;
+            const height = rect.height;
+            const padding = { left: 46, right: 18, top: 20, bottom: 34 };
+            const plotW = width - padding.left - padding.right;
+            const plotH = height - padding.top - padding.bottom;
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#101216';
+            ctx.fillRect(0, 0, width, height);
+
+            const firstT = Number(experimentRecords[0].t || 0);
+            const lastT = Number(experimentRecords[experimentRecords.length - 1].t || 1);
+            const timeSpan = Math.max(0.001, lastT - firstT);
+            const xOf = (record) => padding.left + ((Number(record.t || 0) - firstT) / timeSpan) * plotW;
+
+            const getMax = (key, fallback = 1) => {
+                const values = experimentRecords.map(record => Number(record[key])).filter(Number.isFinite);
+                return Math.max(fallback, ...values);
+            };
+
+            const maxError = getMax('track_error', 0.01);
+            const maxSpeed = getMax('speed', 1);
+            const maxPath = getMax('path_distance', 0.01);
+
+            const normalizeY = (value, maxValue) => {
+                const safeValue = Number.isFinite(Number(value)) ? Number(value) : 0;
+                return padding.top + plotH - Math.max(0, Math.min(1, safeValue / maxValue)) * plotH;
+            };
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#8f98a8';
+            ctx.font = '11px Consolas, Monaco, monospace';
+            for (let i = 0; i <= 4; i += 1) {
+                const y = padding.top + (plotH * i) / 4;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(padding.left + plotW, y);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= 5; i += 1) {
+                const x = padding.left + (plotW * i) / 5;
+                ctx.beginPath();
+                ctx.moveTo(x, padding.top);
+                ctx.lineTo(x, padding.top + plotH);
+                ctx.stroke();
+                const labelT = firstT + (timeSpan * i) / 5;
+                ctx.fillText(`${labelT.toFixed(1)}s`, x - 12, height - 10);
+            }
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, padding.top + plotH);
+            ctx.lineTo(padding.left + plotW, padding.top + plotH);
+            ctx.stroke();
+
+            const drawSeries = (key, color, maxValue, widthValue = 2) => {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = widthValue;
+                ctx.beginPath();
+                let started = false;
+                for (const record of experimentRecords) {
+                    const value = Number(record[key]);
+                    if (!Number.isFinite(value)) continue;
+                    const x = xOf(record);
+                    const y = normalizeY(value, maxValue);
+                    if (!started) {
+                        ctx.moveTo(x, y);
+                        started = true;
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                if (started) ctx.stroke();
+            };
+
+            drawSeries('track_error', '#ff7676', maxError, 2.4);
+            drawSeries('speed', '#64b5f6', maxSpeed, 1.8);
+            drawSeries('progress', '#81c784', 1, 2);
+            drawSeries('path_distance', '#ffd166', maxPath, 1.8);
+
+            ctx.fillStyle = '#d6d6d6';
+            ctx.fillText(`误差最大值: ${maxError.toFixed(4)}`, 10, 14);
+            ctx.fillText(`速度最大值: ${maxSpeed.toFixed(2)}`, width - 132, 14);
         }
 
         function initApiPanelResize() {
@@ -1102,6 +1957,7 @@ await vision.get_evaluation()</code>
                         if (window.startPathRecording) {
                             window.startPathRecording();
                         }
+                        startExperimentRecording();
                         
                         addConsoleLog('开始执行代码...', 'info');
                         
@@ -1132,6 +1988,7 @@ await vision.get_evaluation()</code>
             if (window.startPathRecording) {
                 window.startPathRecording();
             }
+            startExperimentRecording();
 
             addConsoleLog('开始执行代码...', 'info');
             
@@ -1157,6 +2014,7 @@ await vision.get_evaluation()</code>
             if (window.stopPathRecording) {
                 window.stopPathRecording();
             }
+            stopExperimentRecording();
             
             addConsoleLog('已停止执行', 'info');
         }
@@ -1470,9 +2328,10 @@ await vision.get_evaluation()</code>
         // 页面加载时初始化
         window.addEventListener('DOMContentLoaded', () => {
             checkAuth();
-            initApiPanelResize();
             window.addEventListener('keydown', (event) => {
                 if (event.key === 'Escape') {
+                    closeApiPanel();
+                    closeSimulationConfigPanel();
                     closeGlossary();
                 }
             });

@@ -50,8 +50,10 @@ class Engine1Session:
         while True:
             try:
                 state = self.simulator.get_state()
+                env_state = self.simulator.get_env_state()
                 await self.send_message({'type': 'position', 'x': state['x'], 'y': state['y'], 'rotation': state['rotation']})
                 await self.send_message({'type': 'status', 'speed': state['speed'], 'is_moving': state['is_moving']})
+                await self.send_message({'type': 'experiment_state', 'state': env_state})
                 await asyncio.sleep(0.1)
             except Exception as e:
                 print(f"推送状态时发生错误: {e}")

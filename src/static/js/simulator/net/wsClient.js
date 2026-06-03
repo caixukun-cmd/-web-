@@ -79,10 +79,11 @@ function handleWebSocketMessage(data, callbacks) {
         }
 
         case 'status': {
-            setCarStatus(data.speed, data.isMoving);
+            const isMoving = data.isMoving ?? data.is_moving;
+            setCarStatus(data.speed, isMoving);
             const speedEl = document.getElementById('speed');
             if (speedEl) speedEl.textContent = data.speed.toFixed(2);
-            if (data.speed === 0 && !data.isMoving) forceSync();
+            if (data.speed === 0 && !isMoving) forceSync();
             break;
         }
 
@@ -142,6 +143,9 @@ function handleWebSocketMessage(data, callbacks) {
             break;
         case 'track_data':
             handleTrackData(data, callbacks);
+            break;
+        case 'experiment_state':
+            if (callbacks.onExperimentState) callbacks.onExperimentState(data.state || {});
             break;
         default:
             console.log('未知消息类型:', type, data);
