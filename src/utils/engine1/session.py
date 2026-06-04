@@ -63,7 +63,7 @@ class Engine1Session:
         """处理普通消息，同时兜底识别视觉消息。"""
         try:
             message_data = json.loads(message_str)
-            if message_data.get('type') in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result'}:
+            if message_data.get('type') in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result', 'obstacle_truth_result'}:
                 await self.handle_vision_message(message_data)
                 return
         except Exception:
@@ -123,6 +123,14 @@ class Engine1Session:
                 await self.send_message({'type': 'error', 'message': f'处理仿真投影结果失败: {str(exc)}'})
             return
 
+        if message_type == 'obstacle_truth_result':
+            try:
+                truth_result = self.vision.update_obstacle_truth(data)
+                await self.send_message({'type': 'obstacle_truth_ack', 'success': True, 'count': truth_result.get('count', 0)})
+            except Exception as exc:
+                await self.send_message({'type': 'error', 'message': f'处理障碍物真值结果失败: {str(exc)}'})
+            return
+
         await self.send_message({'type': 'error', 'message': f'未知视觉消息类型: {message_type}'})
 
     async def _handle_run_code(self, message: dict):
@@ -164,6 +172,8 @@ class Engine1Session:
 
         if self.sandbox.car_api:
             self.sandbox.car_api._stopped = True
+        if self.vision is not None:
+            self.vision.clear_evaluation()
         self.simulator.car.stop()
         self.simulator.car.current_speed = 0.0
         self.simulator.car.target_speed = 0.0
@@ -222,6 +232,8 @@ class Engine1Session:
                 pass
 
         self.simulator.reset()
+        if self.vision is not None:
+            self.vision.clear_evaluation()
         self.simulator.car.stop()
         self.simulator.car.current_speed = 0.0
         self.simulator.car.target_speed = 0.0

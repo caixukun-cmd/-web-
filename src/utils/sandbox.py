@@ -102,8 +102,10 @@ class SafeCarAPI:
 
     def stop(self):
         self.car.stop()
-        self._stopped = True  # 设置停止标志
         self.log("小车停止")
+
+    def mark_stopped(self):
+        self._stopped = True
 
     def get_position(self) -> Dict[str, float]:
         return self.car.get_position()
@@ -278,6 +280,9 @@ class CodeSandbox:
         }
 
         self.car_api = safe_globals['car']  # 保存 SafeCarAPI 引用，用于 stop 中设置标志
+
+        if self.vision is not None:
+            self.vision.clear_evaluation()
 
         self.is_running = True
         self.current_task = None

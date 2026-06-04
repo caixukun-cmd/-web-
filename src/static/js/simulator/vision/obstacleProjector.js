@@ -20,6 +20,7 @@ const _worldCorners = Array.from({ length: 8 }, () => new THREE.Vector3());
 let overlayCanvas = null;
 let overlayContext = null;
 let lastProjectionMessage = null;
+let lastTruthSentAt = 0;
 
 function ensureOverlayCanvas() {
     const renderer = runtime.renderer;
@@ -150,6 +151,48 @@ function computeScreenBBox(mesh, camera, width, height) {
     };
 }
 
+function computeObstacleSpatialInfo(mesh) {
+    if (!runtime.carModel) return null;
+
+    _box3.setFromObject(mesh);
+    if (_box3.isEmpty()) return null;
+
+    _box3.getCenter(_boxCenter);
+
+    const carPosition = runtime.carModel.position;
+    const rotation = runtime.carModel.rotation.y;
+    const dx = _boxCenter.x - carPosition.x;
+    const dz = _boxCenter.z - carPosition.z;
+
+    const forwardX = Math.sin(rotation);
+    const forwardZ = Math.cos(rotation);
+    const rightX = Math.cos(rotation);
+    const rightZ = -Math.sin(rotation);
+
+    const forwardDistance = dx * forwardX + dz * forwardZ;
+    const lateralOffset = dx * rightX + dz * rightZ;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+
+    let direction = 'center';
+    if (lateralOffset < -0.35) {
+        direction = 'left';
+    } else if (lateralOffset > 0.35) {
+        direction = 'right';
+    }
+
+    return {
+        distance: Number(distance.toFixed(3)),
+        forward_distance: Number(forwardDistance.toFixed(3)),
+        lateral_offset: Number(lateralOffset.toFixed(3)),
+        direction,
+        is_ahead: forwardDistance > 0,
+        world_position: {
+            x: Number(_boxCenter.x.toFixed(3)),
+            z: Number(_boxCenter.z.toFixed(3)),
+        },
+    };
+}
+
 function buildProjectionResult() {
     const canvas = ensureOverlayCanvas();
     const camera = runtime.activeCamera;
@@ -169,12 +212,16 @@ function buildProjectionResult() {
         const bbox = computeScreenBBox(obstacle, camera, width, height);
         if (!bbox) continue;
 
+        const spatial = computeObstacleSpatialInfo(obstacle);
+        if (!spatial || !spatial.is_ahead) continue;
+
         detections.push({
             obstacle_id: obstacle.userData?.obstacleId ?? null,
             class_id: LABEL_CLASS_ID,
             class_name: obstacle.userData?.label || LABEL_CLASS_NAME,
             confidence: 1.0,
             bbox,
+            spatial,
         });
     }
 
@@ -182,6 +229,10 @@ function buildProjectionResult() {
         type: 'vision_projection_result',
         model: MODEL_NAME,
         timestamp: Date.now(),
+        image: {
+            width,
+            height,
+        },
         detections,
     };
 }
@@ -209,7 +260,8 @@ function drawDetections(result) {
         overlayContext.strokeRect(bbox.x1, bbox.y1, bbox.width, bbox.height);
         overlayContext.fillRect(bbox.x1, bbox.y1, bbox.width, bbox.height);
 
-        const label = `${item.class_name ?? LABEL_CLASS_NAME} ${(item.confidence ?? 1).toFixed(2)}`;
+        const spatialText = item.spatial?.forward_distance != null ? ` ${item.spatial.forward_distance.toFixed(1)}m` : '';
+        const label = `${item.class_name ?? LABEL_CLASS_NAME} ${(item.confidence ?? 1).toFixed(2)}${spatialText}`;
         const textWidth = Math.ceil(overlayContext.measureText(label).width);
         const textX = bbox.x1;
         const textY = Math.max(0, bbox.y1 - 18);
@@ -221,6 +273,54 @@ function drawDetections(result) {
     });
 
     overlayContext.restore();
+}
+
+function buildObstacleTruthResult() {
+    if (!runtime.carModel || !runtime.scene) return null;
+
+    const obstacles = collectObstacleMeshes();
+    const truth = [];
+
+    for (const obstacle of obstacles) {
+        const spatial = computeObstacleSpatialInfo(obstacle);
+        if (!spatial) continue;
+
+        truth.push({
+            obstacle_id: obstacle.userData?.obstacleId ?? null,
+            class_name: obstacle.userData?.label || LABEL_CLASS_NAME,
+            size: obstacle.userData?.size ?? null,
+            ...spatial,
+        });
+    }
+
+    truth.sort((a, b) => a.forward_distance - b.forward_distance);
+
+    return {
+        type: 'obstacle_truth_result',
+        model: 'sim-world-truth-obstacles',
+        timestamp: Date.now(),
+        car: {
+            x: Number(runtime.carModel.position.x.toFixed(3)),
+            z: Number(runtime.carModel.position.z.toFixed(3)),
+            rotation: Number((runtime.carModel.rotation.y * 180 / Math.PI).toFixed(3)),
+        },
+        count: truth.length,
+        obstacles: truth,
+    };
+}
+
+export function updateObstacleTruth() {
+    if (!runtime.isConnected) return null;
+
+    const now = Date.now();
+    if (now - lastTruthSentAt < 150) return null;
+    lastTruthSentAt = now;
+
+    const result = buildObstacleTruthResult();
+    if (!result) return null;
+
+    sendMessage(result);
+    return result;
 }
 
 export function updateObstacleProjection() {

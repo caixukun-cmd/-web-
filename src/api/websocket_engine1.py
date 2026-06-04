@@ -80,7 +80,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # 视觉相关协议在这里优先分流。
             # 这样后续如果视觉模块继续扩展，例如上传深度图、上传标注、请求评测等，
             # 都可以沿着同一条协议分支继续演进。
-            if message_type in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result'}:
+            if message_type in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result', 'obstacle_truth_result'}:
                 await session.handle_vision_message(message_data)
                 continue
 
@@ -176,7 +176,7 @@ async def websocket_engine1_endpoint(websocket: WebSocket):
 
             message_type = message_data.get('type')
 
-            if message_type in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result'}:
+            if message_type in {'vision_frame', 'vision_detect', 'vision_status', 'vision_projection_result', 'obstacle_truth_result'}:
                 await session.handle_vision_message(message_data)
                 continue
 

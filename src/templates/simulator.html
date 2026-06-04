@@ -989,6 +989,286 @@
             font-size: 12px;
         }
 
+        .compact-layout-note {
+            display: none;
+        }
+
+        /* ===== 紧凑布局优化：降低任务/实验功能叠加后的视觉拥挤感 ===== */
+        .navbar {
+            height: 44px;
+            padding: 8px 14px;
+        }
+
+        .navbar h1 {
+            font-size: 15px;
+            gap: 7px;
+            letter-spacing: 0.2px;
+        }
+
+        .navbar .user-info {
+            gap: 10px;
+        }
+
+        .navbar .username,
+        .navbar .logout-btn {
+            font-size: 12px;
+        }
+
+        .navbar .logout-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .container {
+            height: calc(100vh - 44px);
+        }
+
+        .left-panel,
+        .right-panel {
+            min-width: 0;
+        }
+
+        .editor-header,
+        .canvas-header {
+            min-height: 38px;
+            padding: 6px 9px;
+            gap: 8px;
+        }
+
+        .editor-header {
+            align-items: flex-start;
+        }
+
+        .editor-header h3,
+        .canvas-header h3 {
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .api-toggle-group {
+            min-width: 0;
+            padding-top: 3px;
+        }
+
+        .api-toggle-btn {
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            flex: 0 0 auto;
+        }
+
+        .editor-controls,
+        .canvas-header > div,
+        .status-bar,
+        .experiment-actions {
+            gap: 6px;
+        }
+
+        .editor-controls {
+            flex: 1;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .editor-controls select,
+        .canvas-header select,
+        select {
+            height: 30px;
+            padding: 4px 8px;
+            margin-right: 0;
+            font-size: 12px;
+        }
+
+        #exampleSelector {
+            max-width: 145px;
+        }
+
+        .map-select select {
+            max-width: 150px;
+        }
+
+        .camera-select,
+        .map-select {
+            font-size: 11px !important;
+            gap: 5px !important;
+            white-space: nowrap;
+        }
+
+        .task-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            min-height: 28px;
+            background: #22272a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 11px;
+        }
+
+        .task-status-item {
+            flex: 0 1 auto;
+            max-width: 180px;
+        }
+
+        .task-status-item:first-child {
+            flex: 1 1 auto;
+            max-width: none;
+        }
+
+        .task-status-label {
+            color: #7f8a96;
+        }
+
+        .task-status-badge {
+            padding: 1px 7px;
+            font-size: 10px;
+        }
+
+        .task-status-bar .btn-mini {
+            padding: 3px 7px;
+            font-size: 10px;
+        }
+
+        #editor {
+            min-height: 0;
+        }
+
+        .console {
+            height: 112px;
+            padding: 7px 8px;
+            border-top: 1px solid #333;
+            font-size: 11px;
+            line-height: 1.35;
+        }
+
+        .console-line {
+            margin: 1px 0;
+            padding: 1px 4px;
+        }
+
+        .experiment-panel {
+            padding: 6px 8px;
+            font-size: 11px;
+        }
+
+        .experiment-panel-header {
+            margin-bottom: 6px;
+        }
+
+        .experiment-panel-title {
+            font-size: 12px;
+        }
+
+        .btn-mini {
+            padding: 3px 7px;
+            font-size: 10px;
+            border-radius: 5px;
+        }
+
+        .experiment-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 5px;
+        }
+
+        .experiment-metric {
+            padding: 5px 6px;
+            border-radius: 5px;
+        }
+
+        .experiment-metric-label {
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+
+        .experiment-metric-value {
+            font-size: 11px;
+        }
+
+        .canvas-header > div {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .status-bar {
+            padding: 5px 10px;
+            font-size: 11px;
+        }
+
+        .task-panel {
+            width: min(900px, calc(100vw - 28px));
+            max-height: min(650px, calc(100vh - 28px));
+        }
+
+        .task-panel-header {
+            padding: 9px 12px;
+        }
+
+        .task-panel-body {
+            grid-template-columns: 260px 1fr;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .task-card {
+            padding: 9px;
+        }
+
+        @media (max-width: 1180px) {
+            .editor-header,
+            .canvas-header {
+                align-items: flex-start;
+            }
+
+            .editor-controls,
+            .canvas-header > div {
+                justify-content: flex-start;
+            }
+
+            #exampleSelector {
+                max-width: 132px;
+            }
+
+            .task-status-bar {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 900px) {
+            body {
+                overflow: auto;
+            }
+
+            .container {
+                height: auto;
+                min-height: calc(100vh - 44px);
+                flex-direction: column;
+            }
+
+            .left-panel,
+            .right-panel {
+                width: 100%;
+                min-height: 560px;
+            }
+
+            .experiment-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .task-panel-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .loading {
             position: absolute;
             top: 50%;
@@ -1013,7 +1293,7 @@
         <div class="left-panel">
             <div class="editor-header">
                 <div class="api-toggle-group">
-                    <h3>💻 代码编辑器 (Python)</h3>
+                    <h3>💻 代码编辑器</h3>
                     <button class="api-toggle-btn" id="apiToggleBtn" type="button" onclick="toggleApiPanel()" title="打开/关闭平台 API 说明" aria-label="打开或关闭平台 API 说明" aria-expanded="false">?</button>
                 </div>
                 <div class="editor-controls">
@@ -1022,10 +1302,11 @@
                         <option value="square">方形路径演示</option>
                         <option value="continuous">连续移动演示</option>
                         <option value="line_follow">自动循线演示</option>
+                        <option value="vision_avoidance">视觉避障演示</option>
                         <option value="platform_api">评测接口演示</option>
                     </select>
-                    <button class="btn btn-config" id="taskManagerBtn" onclick="toggleTaskManagerPanel()">📋 任务管理</button>
-                    <button class="btn btn-config" id="configBtn" onclick="toggleSimulationConfigPanel()">⚙ 实验配置</button>
+                    <button class="btn btn-config" id="taskManagerBtn" onclick="toggleTaskManagerPanel()">📋 任务</button>
+                    <button class="btn btn-config" id="configBtn" onclick="toggleSimulationConfigPanel()">⚙ 配置</button>
                     <button class="btn btn-run" id="runBtn" onclick="runCode()">▶ 运行</button>
                     <button class="btn btn-stop" id="stopBtn" onclick="stopCode()" disabled>⏹ 终止</button>
                     <button class="btn btn-home" id="homeBtn" onclick="homeCar()" disabled>🏠 归位</button>
@@ -1036,7 +1317,7 @@
                 <div class="task-status-item"><span class="task-status-label">状态</span><span class="task-status-badge" id="currentTaskStatus">未开始</span></div>
                 <div class="task-status-item"><span class="task-status-label">地图</span><span class="task-status-value" id="currentTaskMap">--</span></div>
                 <div class="task-status-item"><span class="task-status-label">记录</span><span class="task-status-value" id="currentTaskSamples">0</span></div>
-                <button class="btn-mini" type="button" onclick="openTaskManagerPanel()">打开任务列表</button>
+                <button class="btn-mini" type="button" onclick="openTaskManagerPanel()">任务列表</button>
             </div>
             <div id="editor"></div>
             <div class="console" id="console">
@@ -1140,11 +1421,12 @@ judge.is_passed()</code>
                             <div class="api-card-title">`vision` 视觉接口</div>
                             <button class="api-help-btn" type="button" onclick="openGlossary('vision')">术语解释</button>
                         </div>
-                        <div class="api-card-desc">读取图像帧、调用平台检测器、提交用户检测结果。</div>
-                        <code>await vision.get_frame()
-await vision.detect()
-vision.submit_result(...)
-await vision.get_evaluation()</code>
+                        <div class="api-card-desc">读取投影障碍物、图像帧和检测评测结果，适合实现视觉避障。</div>
+                        <code>await vision.get_nearest_obstacle()
+await vision.get_obstacles()
+await vision.has_obstacle_ahead()
+await vision.get_frame()
+await vision.detect()</code>
                     </div>
                     <div class="api-card">
                         <div class="api-card-header">
@@ -1153,11 +1435,12 @@ await vision.get_evaluation()</code>
                         <div class="api-card-desc">先跑示例，再看状态，再做评测。</div>
                         <code>1. 基本移动演示
 2. 自动循线演示
-3. 评测接口演示</code>
+3. 视觉避障演示
+4. 评测接口演示</code>
                     </div>
                 </div>
                 <div class="api-tips">
-                    提示：想快速体验新接口，请在左上角示例代码里选择“评测接口演示”。如果要做算法评测，推荐先调用 `task.get_info()` 了解任务，再结合 `env` 与 `judge` 编写闭环逻辑。
+                    提示：想快速体验新接口，请在左上角示例代码里选择“视觉避障演示”或“评测接口演示”。视觉避障需要切到车前视角并开启视觉采集；如果要做算法评测，推荐先调用 `task.get_info()` 了解任务，再结合 `env`、`vision` 与 `judge` 编写闭环逻辑。
                 </div>
         </div>
     </div>
@@ -1165,7 +1448,7 @@ await vision.get_evaluation()</code>
         <!-- 右侧：3D场景 -->
         <div class="right-panel">
             <div class="canvas-header">
-                <h3>🎮 3D仿真场景</h3>
+                <h3>🎮 3D仿真</h3>
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <!-- 地图选择下拉框 -->
                     <div class="map-select" style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #ddd;">
@@ -3083,6 +3366,210 @@ await vision.get_evaluation()</code>
                            '# car.disable_line_following()  - 禁用循线\n' +
                            '# car.set_line_pid(kp, ki, kd)  - 动态调整 PID\n' +
                            '# car.set_steering_scale(scale) - 调整转向缩放';
+                    break;
+                case 'vision_avoidance':
+                    code = `# 坐标真值避障演示：完全忽略视觉框，只按障碍物世界坐标避障
+print("=== 坐标真值避障演示 ===")
+print("策略：前端同步障碍物世界坐标；后端直接计算相对小车的前向距离和横向偏移")
+
+FORWARD_TRIGGER_DISTANCE = 1.35   # 更靠近时才避障，避免远处障碍提前触发
+VERY_NEAR_DISTANCE = 0.65         # 非常近时先倒车
+VISION_HALF_ANGLE_DEG = 14        # 更窄的前方锐角视野
+TAN_HALF_ANGLE = 0.249            # tan(14°)
+MIN_LANE_HALF_WIDTH = 0.18        # 近处最小通道半宽
+MAX_LANE_HALF_WIDTH = 0.42        # 远处最大通道半宽
+STARTUP_IGNORE_STEPS = 5          # 起步前几步只直行，让车体姿态和视觉投影同步
+CONFIRM_HITS = 2                  # 连续命中多帧才避障
+MAX_STEPS = 10000
+
+avoid_state = {
+    "last_turn": "right",
+    "last_collision_count": env.get_collision_count(),
+    "confirm_hits": 0,
+}
+
+
+def safe_float(value, default=0.0):
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except:
+        return default
+
+
+async def get_front_obstacle():
+    truth = await vision.get_obstacle_truth(max_age_ms=700)
+    obstacles = truth.get("obstacles", []) or []
+    best = None
+
+    if truth.get("stale"):
+        print("忽略旧障碍物坐标: age_ms=", truth.get("age_ms"))
+        return {"found": False, "count": 0, "stale": True}
+
+    for item in obstacles:
+        forward = item.get("forward_distance")
+        lateral = item.get("lateral_offset")
+        if forward is None or lateral is None:
+            continue
+
+        forward = safe_float(forward, 999.0)
+        lateral = safe_float(lateral, 999.0)
+
+        # 锐角锥形视野：距离越远，允许的横向范围按角度展开；近处保留最小车身安全宽度。
+        cone_half_width = max(MIN_LANE_HALF_WIDTH, min(MAX_LANE_HALF_WIDTH, forward * TAN_HALF_ANGLE))
+
+        # 按伪 YOLO 的真值坐标避障：只看小车前方锐角范围内的真实近距离障碍。
+        if forward <= 0:
+            continue
+        if forward > FORWARD_TRIGGER_DISTANCE:
+            continue
+        if abs(lateral) > cone_half_width:
+            continue
+
+        item["cone_half_width"] = round(cone_half_width, 3)
+
+        if best is None or forward < safe_float(best.get("forward_distance"), 999.0):
+            best = item.copy()
+
+    if best is None:
+        return {"found": False, "count": len(obstacles)}
+
+    best["found"] = True
+    best["count"] = len(obstacles)
+    best["is_very_near"] = safe_float(best.get("forward_distance"), 999.0) <= VERY_NEAR_DISTANCE
+    return best
+
+
+def choose_turn(obstacle):
+    lateral = safe_float(obstacle.get("lateral_offset"), 0.0)
+
+    # 障碍在左侧则向右绕，障碍在右侧则向左绕；居中时沿用上一次方向。
+    if lateral < -0.15:
+        turn = "right"
+    elif lateral > 0.15:
+        turn = "left"
+    else:
+        turn = avoid_state["last_turn"]
+
+    avoid_state["last_turn"] = turn
+    return turn
+
+
+async def avoid(obstacle):
+    area = safe_float(obstacle.get("area_ratio"), 0.0)
+    level = obstacle.get("distance_level") or "far"
+    forward = safe_float(obstacle.get("forward_distance"), 999.0)
+    lateral = safe_float(obstacle.get("lateral_offset"), 0.0)
+    cone_half_width = safe_float(obstacle.get("cone_half_width"), 0.0)
+    turn = choose_turn(obstacle)
+
+    closeness = max(0.0, FORWARD_TRIGGER_DISTANCE - forward)
+    side_pressure = min(0.35, abs(lateral))
+    turn_angle = 22 + int(closeness * 18) + int(side_pressure * 16)
+    turn_angle = max(20, min(45, turn_angle))
+
+    print("触发避障: forward=", round(forward, 3), "lateral=", round(lateral, 3), "cone=", round(cone_half_width, 3), "angle=", turn_angle, "level=", level, "turn=", turn)
+    car.stop()
+    await time.sleep(0.12)
+
+    # 非常近才倒车；普通近障碍不倒车，减少原地震荡。
+    if obstacle.get("is_very_near"):
+        car.backward(DEFAULT_INITIAL_SPEED * 0.45, 0.45)
+        await car.wait()
+
+    # 转向角度根据距离和横向偏移动态调整，远处小角度，近处大角度。
+    if turn == "left":
+        car.turn_left(turn_angle)
+    else:
+        car.turn_right(turn_angle)
+    await car.wait()
+
+    # 转完必须前探，否则会停留在同一视觉画面中反复触发。
+    car.forward(DEFAULT_INITIAL_SPEED * 0.5, 0.55)
+    await car.wait()
+
+
+async def recover_collision():
+    print("检测到碰撞，执行简单脱困")
+    car.stop()
+    await time.sleep(0.1)
+
+    car.backward(DEFAULT_INITIAL_SPEED * 0.55, 0.65)
+    await car.wait()
+
+    # 碰撞后换一个方向脱困，避免一直卡在同一侧。
+    avoid_state["last_turn"] = "left" if avoid_state["last_turn"] == "right" else "right"
+    if avoid_state["last_turn"] == "left":
+        car.turn_left(60)
+    else:
+        car.turn_right(60)
+    await car.wait()
+
+    car.forward(DEFAULT_INITIAL_SPEED * 0.45, 0.45)
+    await car.wait()
+    avoid_state["last_collision_count"] = env.get_collision_count()
+
+
+await time.sleep(0.25)
+
+for step in range(MAX_STEPS):
+    obstacle = await get_front_obstacle()
+    print("step", step + 1,
+          "found=", obstacle.get("found"),
+          "count=", obstacle.get("count"),
+          "forward=", obstacle.get("forward_distance"),
+          "lateral=", obstacle.get("lateral_offset"),
+          "cone=", obstacle.get("cone_half_width"),
+          "hits=", avoid_state.get("confirm_hits"),
+          "dir=", obstacle.get("direction"),
+          "area=", obstacle.get("area_ratio"),
+          "level=", obstacle.get("distance_level"))
+
+    current_collision_count = env.get_collision_count()
+    if env.is_collision() or current_collision_count > avoid_state["last_collision_count"]:
+        await recover_collision()
+        continue
+
+    if step < STARTUP_IGNORE_STEPS:
+        avoid_state["confirm_hits"] = 0
+        print("起步同步阶段，暂不避障")
+        car.forward(DEFAULT_INITIAL_SPEED * 0.65, 0.35)
+        await car.wait()
+        continue
+
+    if obstacle.get("found"):
+        avoid_state["confirm_hits"] += 1
+    else:
+        avoid_state["confirm_hits"] = 0
+
+    if obstacle.get("found") and avoid_state["confirm_hits"] >= CONFIRM_HITS:
+        await avoid(obstacle)
+        avoid_state["confirm_hits"] = 0
+    else:
+        # 正常巡航只走短步，便于及时重新观察。
+        car.forward(DEFAULT_INITIAL_SPEED * 0.72, 0.38)
+        await car.wait()
+
+    current_collision_count = env.get_collision_count()
+    if env.is_collision() or current_collision_count > avoid_state["last_collision_count"]:
+        await recover_collision()
+    else:
+        avoid_state["last_collision_count"] = current_collision_count
+
+    progress = env.get_progress().get("progress", 0.0)
+    if progress >= 0.99:
+        print("已接近或到达终点，结束巡航")
+        break
+
+car.stop()
+print("坐标真值避障演示结束，最终位置:", car.get_position())
+print("最终评测:", judge.get_report())
+
+# ===== 简化规则说明 =====
+# 1. 不使用视觉框、相机视角或 bbox 面积判断距离。
+# 2. 前端直接同步场景中障碍物的世界坐标和相对小车坐标。
+# 3. 只有真实前向距离足够近、且处于前方锐角锥形范围内时才避障。`;
                     break;
                 case 'platform_api':
                     code = '# 平台评测接口演示\n' +

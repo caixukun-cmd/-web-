@@ -7,7 +7,7 @@ import * as runtime from '../runtime.js';
 import { updateCarPositionSmooth } from '../car/smoothing.js';
 import { applyFreeCamMovement } from '../camera/freeCam.js';
 import { updateChunksByCarPosition } from '../map/chunkUpdate.js';
-import { updateObstacleProjection } from '../vision/obstacleProjector.js';
+import { updateObstacleProjection, updateObstacleTruth } from '../vision/obstacleProjector.js';
 import { shouldRender, updateFPS, resetRenderFlag } from './perf.js';
 
 // ===== 循线系统 Hook（可选，延迟加载） =====
@@ -81,6 +81,9 @@ function animate() {
 
     // 5. 检查相机是否移动
     cameraChanged = checkCameraChanged() || cameraChanged;
+
+    // 5.4 同步场景障碍物真值坐标，供非视觉避障策略使用。
+    updateObstacleTruth();
 
     // 5.5 在车前视角下执行仿真真值投影，并同步绘制检测框。
     updateObstacleProjection();
